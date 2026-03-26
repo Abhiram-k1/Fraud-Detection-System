@@ -86,9 +86,9 @@ def prepare_input(df, features, _scaler):
 # ============================================================
 # UI
 # ============================================================
-st.title("🚀 Fraud Detection Intelligence Dashboard")
+st.title("Fraud Detection Intelligence Dashboard")
 
-st.sidebar.header("⚙️ Control Panel")
+st.sidebar.header("Control Panel")
 
 models, scaler, features = load_resources()
 
@@ -105,7 +105,7 @@ uploaded_file = st.file_uploader("Upload Dataset (CSV)", type=["csv"])
 if uploaded_file:
     df = load_data(uploaded_file)
 
-    st.subheader("📊 Dataset Preview")
+    st.subheader("Dataset Preview")
     st.dataframe(df.head())
 
     # limit for performance
@@ -137,7 +137,7 @@ if uploaded_file:
             # ============================================================
             # TABLE
             # ============================================================
-            st.subheader("🔍 Prediction Results")
+            st.subheader("Prediction Results")
 
             def highlight(row):
                 return ['background-color: #ffcccc' if row.Fraud_Prediction == 1 else '' for _ in row]
@@ -147,7 +147,7 @@ if uploaded_file:
             # ============================================================
             # VISUALIZATIONS
             # ============================================================
-            with st.expander("📊 Visualizations"):
+            with st.expander("Visualizations"):
 
                 # Fraud vs Legit
                 st.subheader("Fraud vs Legit Distribution")
