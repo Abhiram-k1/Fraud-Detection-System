@@ -215,10 +215,10 @@ def load_artifacts():
     """Load scaler and feature list once."""
     errors = []
     scaler, features = None, None
-    if os.path.exists("scaler.pkl"):
-        scaler = joblib.load("scaler.pkl")
+    if os.path.exists("scaler(1).pkl"):
+        scaler = joblib.load("scaler(1).pkl")
     else:
-        errors.append("scaler.pkl not found")
+        errors.append("scaler(1).pkl not found")
     if os.path.exists("features.pkl"):
         features = joblib.load("features.pkl")
     else:
