@@ -46,7 +46,7 @@ def load_resources():
         "Neural Network": joblib.load("nn_model.pkl"),
         "XGBoost": joblib.load("xgb_model.pkl")
     }
-    scaler = joblib.load("scaler.pkl")
+    scaler = joblib.load("scaler (1).pkl")
     features = joblib.load("features.pkl")
     return models, scaler, features
 
