@@ -5,6 +5,43 @@ import joblib
 import os
 import time
 
+class LogisticRegressionGD:
+    def __init__(self, lr=0.1, n_iter=1000, verbose=True):
+        self.lr = lr
+        self.n_iter = n_iter
+        self.verbose = verbose
+        self.weights = None
+        self.bias = None
+
+    def _sigmoid(self, z):
+        return 1 / (1 + np.exp(-z))
+
+    def predict_proba(self, X):
+        return self._sigmoid(X @ self.weights + self.bias)
+
+    def predict(self, X):
+        return (self.predict_proba(X) >= 0.5).astype(int)
+
+
+class NeuralNetworkSGD:
+    def __init__(self):
+        pass
+
+    def _sigmoid(self, z):
+        return 1 / (1 + np.exp(-z))
+
+    def _relu(self, z):
+        return np.maximum(0, z)
+
+    def predict_proba(self, X):
+        z1 = X @ self.W1 + self.b1
+        a1 = self._relu(z1)
+        z2 = a1 @ self.W2 + self.b2
+        return self._sigmoid(z2).ravel()
+
+    def predict(self, X):
+        return (self.predict_proba(X) >= 0.5).astype(int)
+
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Fraud Detection System",
