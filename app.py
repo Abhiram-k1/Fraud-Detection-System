@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import joblib
 import os
+import matplotlib.pyplot as plt
 
 # ============================================================
 # CONFIG
@@ -10,7 +11,7 @@ import os
 st.set_page_config(page_title="Fraud Detection Dashboard", layout="wide")
 
 # ============================================================
-# REQUIRED CLASSES FOR JOBLIB LOADING
+# CUSTOM CLASSES (REQUIRED FOR JOBLIB)
 # ============================================================
 class LogisticRegressionGD:
     def predict_proba(self, X):
@@ -37,17 +38,32 @@ class NeuralNetworkSGD:
         return (self.predict_proba(X) >= 0.5).astype(int)
 
 # ============================================================
-# LOAD RESOURCES (CACHED)
+# LOAD MODELS (CACHED)
 # ============================================================
 @st.cache_resource
 def load_resources():
+    files = [
+        "logistic_gd.pkl",
+        "nn_model.pkl",
+        "xgb_model.pkl",
+        "scaler (1).pkl",
+        "features.pkl"
+    ]
+
+    for f in files:
+        if not os.path.exists(f):
+            st.error(f"Missing file: {f}")
+            st.stop()
+
     models = {
         "Logistic Regression": joblib.load("logistic_gd.pkl"),
         "Neural Network": joblib.load("nn_model.pkl"),
         "XGBoost": joblib.load("xgb_model.pkl")
     }
+
     scaler = joblib.load("scaler (1).pkl")
     features = joblib.load("features.pkl")
+
     return models, scaler, features
 
 # ============================================================
@@ -58,7 +74,7 @@ def load_data(file):
     return pd.read_csv(file)
 
 # ============================================================
-# DATASET CREATION
+# CREATE DATASETS
 # ============================================================
 def create_datasets(df):
     sample = df.head(5000)
@@ -67,7 +83,7 @@ def create_datasets(df):
     legit = df[df["Class"] == 0].sample(len(fraud))
     balanced = pd.concat([fraud, legit]).sample(frac=1)
 
-    optimized = df.sample(10000)
+    optimized = df.sample(min(10000, len(df)))
 
     return {
         "Sample Dataset": sample,
@@ -76,12 +92,13 @@ def create_datasets(df):
     }
 
 # ============================================================
-# FEATURE ENGINEERING (DYNAMIC)
+# PREPROCESSING (MATCH TRAINING)
 # ============================================================
+@st.cache_data
 def prepare_input(df, features, scaler):
     df = df.copy()
 
-    # detect lag features
+    # generate lag features dynamically
     lag_features = [f for f in features if "_lag" in f]
 
     for col in lag_features:
@@ -108,10 +125,7 @@ st.sidebar.header("⚙️ Control Panel")
 
 models, scaler, features = load_resources()
 
-model_choice = st.sidebar.selectbox(
-    "Select Model",
-    list(models.keys())
-)
+model_choice = st.sidebar.selectbox("Select Model", list(models.keys()))
 
 uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
 
@@ -126,11 +140,7 @@ if uploaded_file:
 
     datasets = create_datasets(df)
 
-    dataset_choice = st.sidebar.selectbox(
-        "Select Dataset",
-        list(datasets.keys())
-    )
-
+    dataset_choice = st.sidebar.selectbox("Select Dataset", list(datasets.keys()))
     df_selected = datasets[dataset_choice]
 
     if st.button("Run Detection"):
@@ -145,7 +155,9 @@ if uploaded_file:
             df_processed["Fraud_Prediction"] = preds
             df_processed["Probability"] = probs
 
-            # Summary
+            # ============================================================
+            # SUMMARY METRICS
+            # ============================================================
             total = len(df_processed)
             fraud_count = preds.sum()
 
@@ -154,16 +166,70 @@ if uploaded_file:
             col2.metric("Fraud Detected", fraud_count)
             col3.metric("Fraud %", f"{(fraud_count/total)*100:.2f}%")
 
-            st.subheader("🔍 Results")
+            # ============================================================
+            # TABLE
+            # ============================================================
+            st.subheader("🔍 Prediction Results")
 
             def highlight(row):
-                return ['background-color: red' if row.Fraud_Prediction == 1 else '' for _ in row]
+                return ['background-color: #ffcccc' if row.Fraud_Prediction == 1 else '' for _ in row]
 
             st.dataframe(df_processed.style.apply(highlight, axis=1))
 
-            # Chart
-            st.subheader("📈 Fraud vs Legit")
-            st.bar_chart(df_processed["Fraud_Prediction"].value_counts())
+            # ============================================================
+            # VISUALIZATIONS
+            # ============================================================
+            with st.expander("📊 Visualizations"):
+
+                # Fraud vs Legit
+                st.subheader("Fraud vs Legit Distribution")
+                counts = df_processed["Fraud_Prediction"].value_counts()
+
+                fig, ax = plt.subplots()
+                ax.bar(["Legit", "Fraud"], counts.values)
+                st.pyplot(fig)
+
+                # Probability Histogram
+                st.subheader("Prediction Confidence")
+                fig, ax = plt.subplots()
+                ax.hist(df_processed["Probability"], bins=30)
+                st.pyplot(fig)
+
+                # Fraud vs Legit Probabilities
+                st.subheader("Fraud vs Legit Probability Spread")
+                fig, ax = plt.subplots()
+
+                ax.hist(
+                    df_processed[df_processed["Fraud_Prediction"] == 0]["Probability"],
+                    bins=30,
+                    alpha=0.5,
+                    label="Legit"
+                )
+
+                ax.hist(
+                    df_processed[df_processed["Fraud_Prediction"] == 1]["Probability"],
+                    bins=30,
+                    alpha=0.5,
+                    label="Fraud"
+                )
+
+                ax.legend()
+                st.pyplot(fig)
+
+                # Correlation Heatmap
+                st.subheader("Feature Correlation Heatmap")
+                sample_cols = df_processed.select_dtypes(include=[np.number]).iloc[:, :10]
+                corr = sample_cols.corr()
+
+                fig, ax = plt.subplots()
+                cax = ax.matshow(corr)
+                fig.colorbar(cax)
+                ax.set_xticks(range(len(sample_cols.columns)))
+                ax.set_xticklabels(sample_cols.columns, rotation=90)
+                ax.set_yticks(range(len(sample_cols.columns)))
+                ax.set_yticklabels(sample_cols.columns)
+
+                st.pyplot(fig)
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
