@@ -2,13 +2,15 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import os
 import matplotlib.pyplot as plt
 
+# ============================================================
+# CONFIG
+# ============================================================
 st.set_page_config(page_title="Fraud Detection Dashboard", layout="wide")
 
 # ============================================================
-# CUSTOM CLASSES (FOR JOBLIB)
+# CUSTOM CLASSES (REQUIRED FOR JOBLIB LOADING)
 # ============================================================
 class LogisticRegressionGD:
     def predict_proba(self, X):
@@ -58,12 +60,13 @@ def load_data(file):
     return pd.read_csv(file)
 
 # ============================================================
-# PREPROCESS
+# PREPROCESS (FIXED CACHING)
 # ============================================================
 @st.cache_data
-def prepare_input(df, features, scaler):
+def prepare_input(df, features, _scaler):
     df = df.copy()
 
+    # dynamic lag feature generation
     lag_features = [f for f in features if "_lag" in f]
 
     for col in lag_features:
@@ -76,7 +79,7 @@ def prepare_input(df, features, scaler):
         df[col] = df[base].shift(lag).fillna(0)
 
     X = df[features]
-    X_scaled = scaler.transform(X)
+    X_scaled = _scaler.transform(X)
 
     return X_scaled, df
 
@@ -89,7 +92,10 @@ st.sidebar.header("⚙️ Control Panel")
 
 models, scaler, features = load_resources()
 
-model_choice = st.sidebar.selectbox("Select Model", list(models.keys()))
+model_choice = st.sidebar.selectbox(
+    "Select Model",
+    list(models.keys())
+)
 
 uploaded_file = st.file_uploader("Upload Dataset (CSV)", type=["csv"])
 
@@ -117,7 +123,9 @@ if uploaded_file:
             df_processed["Fraud_Prediction"] = preds
             df_processed["Probability"] = probs
 
-            # ===================== METRICS =====================
+            # ============================================================
+            # METRICS
+            # ============================================================
             total = len(df_processed)
             fraud_count = preds.sum()
 
@@ -126,33 +134,39 @@ if uploaded_file:
             col2.metric("Fraud Detected", fraud_count)
             col3.metric("Fraud %", f"{(fraud_count/total)*100:.2f}%")
 
-            # ===================== TABLE =====================
-            st.subheader("🔍 Results")
+            # ============================================================
+            # TABLE
+            # ============================================================
+            st.subheader("🔍 Prediction Results")
 
             def highlight(row):
                 return ['background-color: #ffcccc' if row.Fraud_Prediction == 1 else '' for _ in row]
 
             st.dataframe(df_processed.style.apply(highlight, axis=1))
 
-            # ===================== VISUALS =====================
+            # ============================================================
+            # VISUALIZATIONS
+            # ============================================================
             with st.expander("📊 Visualizations"):
 
-                # Distribution
-                st.subheader("Fraud vs Legit")
+                # Fraud vs Legit
+                st.subheader("Fraud vs Legit Distribution")
                 counts = df_processed["Fraud_Prediction"].value_counts()
 
                 fig, ax = plt.subplots()
                 ax.bar(["Legit", "Fraud"], counts.values)
+                ax.set_title("Prediction Distribution")
                 st.pyplot(fig)
 
-                # Probability
-                st.subheader("Confidence Distribution")
+                # Probability Histogram
+                st.subheader("Prediction Confidence")
                 fig, ax = plt.subplots()
                 ax.hist(df_processed["Probability"], bins=30)
+                ax.set_title("Probability Distribution")
                 st.pyplot(fig)
 
-                # Split
-                st.subheader("Fraud vs Legit Probability")
+                # Fraud vs Legit Probability Spread
+                st.subheader("Fraud vs Legit Probability Spread")
 
                 fig, ax = plt.subplots()
 
@@ -167,6 +181,22 @@ if uploaded_file:
                 )
 
                 ax.legend()
+                st.pyplot(fig)
+
+                # Correlation Heatmap
+                st.subheader("Feature Correlation Heatmap")
+                sample_cols = df_processed.select_dtypes(include=[np.number]).iloc[:, :10]
+                corr = sample_cols.corr()
+
+                fig, ax = plt.subplots()
+                cax = ax.matshow(corr)
+                fig.colorbar(cax)
+
+                ax.set_xticks(range(len(sample_cols.columns)))
+                ax.set_xticklabels(sample_cols.columns, rotation=90)
+                ax.set_yticks(range(len(sample_cols.columns)))
+                ax.set_yticklabels(sample_cols.columns)
+
                 st.pyplot(fig)
 
         except Exception as e:
