@@ -1,6 +1,6 @@
 """
 GIG WORKER FRAUD SHIELD & CREDIT SCORING SYSTEM
-Streamlit Dashboard -- MIS End Semester Project
+Streamlit Dashboard — MIS End Semester Project
 Run: streamlit run app.py
 """
 import streamlit as st
@@ -23,334 +23,430 @@ from sklearn.mixture import GaussianMixture
 import warnings
 warnings.filterwarnings("ignore")
 
-# -----------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────
 # PAGE CONFIG
-# -----------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="GIG Fraud Shield & Credit Scoring",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# -----------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────
 # GLOBAL COLORS
-# -----------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────
 C = {
-    "cyan":   "#00D4FF", "red":    "#FF4757", "gold":   "#FFD700",
-    "green":  "#00FF88", "purple": "#BB86FC", "orange": "#FF8C00",
-    "pink":   "#FF69B4", "teal":   "#00CED1", "bg":     "#0E1117",
-    "panel":  "#161B22", "white":  "#E6EDF3", "blue":   "#4FC3F7",
-    "dark2":  "#21262D", "border": "#30363D",
+    "cyan":   "#00D4FF", "red":    "#FF4757", "gold":   "#C9A84C",
+    "green":  "#00C070", "purple": "#9B72CF", "orange": "#E07B39",
+    "pink":   "#D4628A", "teal":   "#00B8C8", "bg":     "#080C10",
+    "panel":  "#0D1218", "white":  "#D8E4EE", "blue":   "#4FC3F7",
+    "dark2":  "#141B24", "border": "#1E2A36", "muted":  "#4A6070",
+    "accent": "#00D4FF",
 }
 
-# -----------------------------------------------------------------
-# CUSTOM CSS
-# -----------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────
+# CUSTOM CSS — Professional, no-emoji, form-based UI
+# ─────────────────────────────────────────────────────────────────
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
+/* ── Root ── */
 html, body, [data-testid="stAppViewContainer"] {{
     background-color: {C['bg']} !important;
-    font-family: 'Rajdhani', sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
     color: {C['white']};
 }}
 [data-testid="stSidebar"] {{
-    background: linear-gradient(180deg, #0D1117 0%, #161B22 100%) !important;
+    background: {C['panel']} !important;
     border-right: 1px solid {C['border']};
 }}
 [data-testid="stSidebar"] * {{ color: {C['white']} !important; }}
 [data-testid="stHeader"] {{ background: transparent !important; }}
 
-/* Hero Banner */
+/* ── Hero Banner ── */
 .hero-banner {{
-    background: linear-gradient(135deg, #0D1117 0%, #1a0a2e 40%, #0a1a2e 100%);
-    border: 1px solid {C['cyan']}44;
-    border-radius: 12px;
-    padding: 32px 40px;
-    margin-bottom: 28px;
+    background: linear-gradient(135deg, {C['bg']} 0%, #0A1020 60%, #080C14 100%);
+    border: 1px solid {C['border']};
+    border-top: 2px solid {C['cyan']};
+    border-radius: 4px;
+    padding: 28px 36px;
+    margin-bottom: 24px;
     position: relative;
     overflow: hidden;
 }}
-.hero-banner::before {{
+.hero-banner::after {{
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-        90deg, transparent, transparent 40px,
-        {C['cyan']}08 40px, {C['cyan']}08 41px
-    );
+    top: 0; right: 0;
+    width: 300px; height: 100%;
+    background: radial-gradient(ellipse at right, {C['cyan']}08 0%, transparent 70%);
     pointer-events: none;
 }}
 .hero-title {{
-    font-family: 'Orbitron', monospace;
-    font-size: 2.1rem;
-    font-weight: 900;
-    color: {C['cyan']};
-    text-shadow: 0 0 30px {C['cyan']}66;
-    margin: 0 0 8px 0;
-    letter-spacing: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.55rem;
+    font-weight: 600;
+    color: {C['white']};
+    margin: 0 0 6px 0;
+    letter-spacing: 0.5px;
+    line-height: 1.3;
 }}
+.hero-title span {{ color: {C['cyan']}; }}
 .hero-sub {{
-    font-family: 'Share Tech Mono', monospace;
-    color: {C['gold']};
-    font-size: 0.95rem;
-    letter-spacing: 1px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: {C['muted']};
+    font-size: 0.78rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 10px;
+}}
+.hero-badge {{
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    background: {C['cyan']}14;
+    color: {C['cyan']};
+    border: 1px solid {C['cyan']}30;
+    border-radius: 2px;
+    padding: 3px 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-right: 8px;
+    margin-top: 12px;
 }}
 
-/* Metric Cards */
-.metric-grid {{ display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }}
+/* ── Metric Cards ── */
+.metric-grid {{ display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }}
 .metric-card {{
     background: {C['panel']};
     border: 1px solid {C['border']};
-    border-radius: 10px;
-    padding: 20px 24px;
-    flex: 1; min-width: 160px;
+    border-radius: 4px;
+    padding: 18px 22px;
+    flex: 1; min-width: 150px;
     position: relative;
     overflow: hidden;
 }}
-.metric-card::after {{
+.metric-card::before {{
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
-    height: 3px;
-    border-radius: 10px 10px 0 0;
+    height: 2px;
+    border-radius: 4px 4px 0 0;
 }}
-.metric-card.cyan::after   {{ background: {C['cyan']}; }}
-.metric-card.red::after    {{ background: {C['red']}; }}
-.metric-card.gold::after   {{ background: {C['gold']}; }}
-.metric-card.green::after  {{ background: {C['green']}; }}
-.metric-card.purple::after {{ background: {C['purple']}; }}
-.metric-card.orange::after {{ background: {C['orange']}; }}
+.metric-card.cyan::before   {{ background: {C['cyan']}; }}
+.metric-card.red::before    {{ background: {C['red']}; }}
+.metric-card.gold::before   {{ background: {C['gold']}; }}
+.metric-card.green::before  {{ background: {C['green']}; }}
+.metric-card.purple::before {{ background: {C['purple']}; }}
+.metric-card.orange::before {{ background: {C['orange']}; }}
 .metric-label {{
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.72rem;
-    color: #8B949E;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: {C['muted']};
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 8px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
 }}
 .metric-value {{
-    font-family: 'Orbitron', monospace;
-    font-size: 1.75rem;
-    font-weight: 700;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.65rem;
+    font-weight: 600;
     color: {C['white']};
     line-height: 1;
 }}
 .metric-delta {{
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 0.8rem;
-    color: {C['green']};
-    margin-top: 4px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 0.75rem;
+    color: {C['muted']};
+    margin-top: 6px;
 }}
 
-/* Section Headers */
+/* ── Section Headers ── */
 .section-header {{
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px 0;
-    margin-bottom: 20px;
+    gap: 14px;
+    padding: 14px 0;
+    margin-bottom: 18px;
     border-bottom: 1px solid {C['border']};
 }}
 .section-title {{
-    font-family: 'Orbitron', monospace;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: {C['gold']};
-    letter-spacing: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: {C['cyan']};
+    letter-spacing: 3px;
     text-transform: uppercase;
 }}
 .section-badge {{
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.7rem;
-    background: {C['cyan']}22;
-    color: {C['cyan']};
-    border: 1px solid {C['cyan']}44;
-    border-radius: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    background: {C['dark2']};
+    color: {C['muted']};
+    border: 1px solid {C['border']};
+    border-radius: 2px;
     padding: 2px 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
 }}
 
-/* Data Table */
+/* ── Data Table ── */
 .result-table {{
     width: 100%;
     border-collapse: collapse;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.83rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
     background: {C['panel']};
-    border-radius: 8px;
+    border-radius: 4px;
     overflow: hidden;
+    border: 1px solid {C['border']};
 }}
 .result-table th {{
     background: {C['dark2']};
-    color: {C['cyan']};
+    color: {C['muted']};
     padding: 10px 14px;
     text-align: left;
-    font-size: 0.75rem;
-    letter-spacing: 1px;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
     text-transform: uppercase;
     border-bottom: 1px solid {C['border']};
+    font-weight: 500;
 }}
 .result-table td {{
-    padding: 9px 14px;
+    padding: 10px 14px;
     border-bottom: 1px solid {C['border']}55;
     color: {C['white']};
+    font-size: 0.8rem;
 }}
+.result-table tr:last-child td {{ border-bottom: none; }}
 .result-table tr:hover td {{ background: {C['dark2']}88; }}
-.result-table .auc-high {{ color: {C['green']}; font-weight: 700; }}
-.result-table .auc-mid  {{ color: {C['gold']}; }}
-.result-table .auc-low  {{ color: {C['orange']}; }}
-.badge-fraud  {{ color: {C['red']};  background: {C['red']}22;  padding: 2px 8px; border-radius: 4px; }}
-.badge-credit {{ color: {C['cyan']}; background: {C['cyan']}22; padding: 2px 8px; border-radius: 4px; }}
+.auc-high {{ color: {C['green']}; font-weight: 600; }}
+.auc-mid  {{ color: {C['gold']};  }}
+.auc-low  {{ color: {C['orange']}; }}
+.badge-fraud  {{ color: {C['red']};   background: {C['red']}18;   padding: 2px 8px; border-radius: 2px; font-size: 0.7rem; letter-spacing: 1px; }}
+.badge-credit {{ color: {C['cyan']};  background: {C['cyan']}18;  padding: 2px 8px; border-radius: 2px; font-size: 0.7rem; letter-spacing: 1px; }}
 
-/* Novelty Box */
+/* ── Info/Novelty Box ── */
 .novelty-box {{
-    background: linear-gradient(135deg, {C['gold']}11, {C['orange']}11);
-    border: 1px solid {C['gold']}44;
-    border-left: 3px solid {C['gold']};
-    border-radius: 8px;
+    background: {C['dark2']};
+    border: 1px solid {C['border']};
+    border-left: 2px solid {C['gold']};
+    border-radius: 4px;
     padding: 16px 20px;
-    margin: 16px 0;
-    font-family: 'Rajdhani', sans-serif;
+    margin: 14px 0;
 }}
 .novelty-box h4 {{
     color: {C['gold']};
-    font-family: 'Orbitron', monospace;
-    font-size: 0.8rem;
-    margin: 0 0 8px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    margin: 0 0 10px 0;
     letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
 }}
-.novelty-box p {{ color: {C['white']}cc; margin: 4px 0; font-size: 0.9rem; }}
+.novelty-box p {{
+    color: {C['muted']};
+    margin: 5px 0;
+    font-size: 0.84rem;
+    line-height: 1.6;
+    font-family: 'IBM Plex Sans', sans-serif;
+}}
+.novelty-box p span {{ color: {C['white']}; }}
 
-/* Info Box */
 .info-box {{
-    background: {C['cyan']}11;
-    border: 1px solid {C['cyan']}33;
-    border-radius: 8px;
+    background: {C['cyan']}08;
+    border: 1px solid {C['cyan']}20;
+    border-radius: 4px;
     padding: 14px 18px;
     margin: 12px 0;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.82rem;
-    color: {C['cyan']}dd;
-    line-height: 1.9;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: {C['muted']};
+    line-height: 1.8;
 }}
 
-/* Progress Bar */
-.prog-bar-wrap {{
-    background: {C['dark2']};
-    border-radius: 6px;
-    height: 8px;
-    width: 100%;
-    margin: 6px 0 14px 0;
-    overflow: hidden;
-}}
-.prog-bar-fill {{
-    height: 100%;
-    border-radius: 6px;
-}}
-
-/* Tabs */
-[data-testid="stTabs"] [role="tab"] {{
-    font-family: 'Orbitron', monospace;
-    font-size: 0.78rem;
-    letter-spacing: 1px;
-    color: #8B949E;
-    border-radius: 6px 6px 0 0;
-}}
-[data-testid="stTabs"] [aria-selected="true"] {{
-    color: {C['cyan']} !important;
-    border-bottom: 2px solid {C['cyan']} !important;
-}}
-
-/* Buttons */
-.stButton > button {{
-    font-family: 'Orbitron', monospace !important;
-    font-size: 0.78rem !important;
-    letter-spacing: 1.5px !important;
-    border-radius: 6px !important;
-    border: 1px solid {C['cyan']} !important;
-    background: {C['cyan']}22 !important;
-    color: {C['cyan']} !important;
-    padding: 10px 28px !important;
-    transition: all 0.25s !important;
-    width: 100% !important;
-}}
-.stButton > button:hover {{
-    background: {C['cyan']}44 !important;
-    box-shadow: 0 0 20px {C['cyan']}44 !important;
-}}
-
-/* Form field overrides */
-.stNumberInput label,
-.stSelectbox label,
-.stTextInput label,
-.stRadio label {{
-    color: {C['white']} !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    font-size: 0.75rem !important;
-    letter-spacing: 1px !important;
+/* ── Form Elements ── */
+.stNumberInput > label,
+.stSelectbox > label,
+.stTextInput > label,
+.stRadio > label {{
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 0.68rem !important;
+    color: {C['muted']} !important;
     text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    margin-bottom: 6px !important;
+    font-weight: 500 !important;
 }}
 .stNumberInput input,
 .stTextInput input {{
     background: {C['dark2']} !important;
     border: 1px solid {C['border']} !important;
+    border-radius: 3px !important;
     color: {C['white']} !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    border-radius: 6px !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 0.88rem !important;
+    padding: 8px 12px !important;
 }}
 .stNumberInput input:focus,
 .stTextInput input:focus {{
-    border-color: {C['cyan']} !important;
-    box-shadow: 0 0 0 1px {C['cyan']}44 !important;
+    border-color: {C['cyan']}60 !important;
+    box-shadow: 0 0 0 1px {C['cyan']}30 !important;
 }}
 .stSelectbox > div > div {{
     background: {C['dark2']} !important;
     border: 1px solid {C['border']} !important;
+    border-radius: 3px !important;
     color: {C['white']} !important;
-    font-family: 'Share Tech Mono', monospace !important;
-    border-radius: 6px !important;
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 0.88rem !important;
+}}
+.stSelectbox > div > div:focus-within {{
+    border-color: {C['cyan']}60 !important;
 }}
 
-/* Field group label */
-.field-group-label {{
-    font-family: 'Orbitron', monospace;
-    font-size: 0.68rem;
-    color: {C['cyan']};
+/* ── Buttons ── */
+.stButton > button {{
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    border-radius: 3px !important;
+    border: 1px solid {C['cyan']}50 !important;
+    background: {C['cyan']}12 !important;
+    color: {C['cyan']} !important;
+    padding: 10px 28px !important;
+    transition: all 0.2s !important;
+    font-weight: 500 !important;
+}}
+.stButton > button:hover {{
+    background: {C['cyan']}22 !important;
+    border-color: {C['cyan']}80 !important;
+}}
+.stButton > button:active {{
+    background: {C['cyan']}35 !important;
+}}
+
+/* ── Progress bar ── */
+.prog-bar-wrap {{
+    background: {C['dark2']};
+    border-radius: 2px;
+    height: 4px;
+    width: 100%;
+    margin: 6px 0 12px 0;
+    overflow: hidden;
+}}
+.prog-bar-fill {{
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.6s;
+}}
+
+/* ── Tabs ── */
+[data-testid="stTabs"] [role="tab"] {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    border-bottom: 1px solid {C['border']};
-    padding-bottom: 8px;
-    margin-bottom: 14px;
-    margin-top: 4px;
+    color: {C['muted']};
+    padding: 10px 20px;
+}}
+[data-testid="stTabs"] [aria-selected="true"] {{
+    color: {C['cyan']} !important;
+    border-bottom: 1px solid {C['cyan']} !important;
 }}
 
-/* Streamlit metric override */
+/* ── Radio ── */
+.stRadio > div {{
+    gap: 8px !important;
+}}
+.stRadio [data-testid="stMarkdownContainer"] p {{
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    font-size: 0.85rem !important;
+    color: {C['white']} !important;
+}}
+
+/* ── Sidebar nav ── */
+[data-testid="stSidebar"] .stRadio label {{
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    font-size: 0.88rem !important;
+    color: {C['muted']} !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}}
+[data-testid="stSidebar"] .stRadio [aria-checked="true"] + label {{
+    color: {C['cyan']} !important;
+}}
+
+/* ── Sidebar number inputs ── */
+[data-testid="stSidebar"] .stNumberInput label {{
+    font-size: 0.7rem !important;
+}}
+
+/* ── Streamlit overrides ── */
 div[data-testid="metric-container"] {{
     background: {C['panel']};
     border: 1px solid {C['border']};
-    border-radius: 8px;
+    border-radius: 4px;
     padding: 12px 16px;
+}}
+[data-testid="stDataFrame"] {{
+    border: 1px solid {C['border']} !important;
+    border-radius: 4px !important;
+}}
+.stMarkdown hr {{
+    border-color: {C['border']} !important;
+}}
+/* Column label overrides */
+.stSelectbox [data-baseweb="select"] {{
+    font-family: 'IBM Plex Mono', monospace !important;
+}}
+/* Spinner */
+[data-testid="stSpinner"] p {{
+    font-family: 'IBM Plex Mono', monospace !important;
+    font-size: 0.78rem !important;
+    color: {C['muted']} !important;
+    letter-spacing: 1px !important;
+}}
+/* Divider */
+.divider {{
+    height: 1px;
+    background: {C['border']};
+    margin: 16px 0;
+}}
+/* Form group label */
+.form-group-label {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: {C['cyan']};
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid {C['border']};
 }}
 </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────
 # MPL THEME
-# -----------------------------------------------------------------
+# ─────────────────────────────────────────────────────────────────
 plt.rcParams.update({
     "figure.facecolor": C["bg"],   "axes.facecolor": C["panel"],
     "axes.edgecolor":  C["border"],"text.color":     C["white"],
-    "axes.labelcolor": C["white"], "xtick.color":    "#8B949E",
-    "ytick.color":     "#8B949E",  "grid.color":     C["dark2"],
-    "grid.alpha":       0.5,       "axes.grid":      True,
-    "font.family":     "monospace",
+    "axes.labelcolor": C["white"], "xtick.color":    C["muted"],
+    "ytick.color":     C["muted"], "grid.color":     C["dark2"],
+    "grid.alpha":       0.6,       "axes.grid":      True,
+    "font.family":     "monospace","axes.spines.top": False,
+    "axes.spines.right": False,
 })
 np.random.seed(42)
 
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 # BACKEND FUNCTIONS
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 
 @st.cache_data(show_spinner=False)
 def generate_gig_fraud_dataset(n=40_000, fraud_rate=0.08):
@@ -486,6 +582,7 @@ def generate_credit_dataset(n=25_000, default_rate=0.18):
     return df
 
 
+# ── ML helpers ─────────────────────────────────────────────────
 def sigmoid_s(z):
     return np.where(z >= 0, 1/(1+np.exp(-z)), np.exp(z)/(1+np.exp(z)))
 
@@ -581,6 +678,7 @@ def run_alm(X_tr, y_tr, X_te, y_te, platform_tr, epsilon=0.05, rho=2.0, T=150):
     return w, costs, viols_fair, auc, f1
 
 
+# ── Neural Net ─────────────────────────────────────────────────
 class FraudNet:
     def __init__(self, in_dim, h1=64, h2=32, seed=0):
         np.random.seed(seed)
@@ -709,6 +807,7 @@ def run_neural_networks(X_tr, y_tr, X_te, y_te):
     return results
 
 
+# ── Quantum ────────────────────────────────────────────────────
 H_gate = np.array([[1,1],[1,-1]], dtype=complex)/np.sqrt(2)
 def Ry(t): c,s=np.cos(t/2),np.sin(t/2); return np.array([[c,-s],[s,c]], dtype=complex)
 def Rz(t): return np.array([[np.exp(-1j*t/2),0],[0,np.exp(1j*t/2)]], dtype=complex)
@@ -763,23 +862,23 @@ def run_quantum_svm(X_tr_pca, y_tr, X_te_pca, y_te, n_qtr=180, n_qte=120):
     return K_tr, y_qtr, prob, pred, y_qte, auc, f1
 
 
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 # SIDEBAR
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 with st.sidebar:
     st.markdown(f"""
-    <div style='text-align:center;padding:20px 0 8px 0;'>
-      <div style='font-family:Orbitron,monospace;font-size:1.05rem;
-                  font-weight:900;color:{C["cyan"]};
-                  text-shadow:0 0 20px {C["cyan"]}66;letter-spacing:2px;'>
+    <div style='padding:20px 0 16px 0;'>
+      <div style='font-family:IBM Plex Mono,monospace;font-size:0.72rem;
+                  font-weight:600;color:{C["cyan"]};
+                  letter-spacing:3px;text-transform:uppercase;'>
         GIG FRAUD SHIELD
       </div>
-      <div style='font-family:Share Tech Mono,monospace;font-size:0.65rem;
-                  color:{C["gold"]};margin-top:4px;letter-spacing:1px;'>
-        MIS END-SEM PROJECT
+      <div style='font-family:IBM Plex Mono,monospace;font-size:0.6rem;
+                  color:{C["muted"]};margin-top:4px;letter-spacing:2px;text-transform:uppercase;'>
+        MIS End-Sem Project
       </div>
     </div>
-    <hr style='border-color:{C["border"]};margin:12px 0 20px 0;'>
+    <hr style='border-color:{C["border"]};margin:0 0 16px 0;'>
     """, unsafe_allow_html=True)
 
     page = st.radio(
@@ -789,29 +888,32 @@ with st.sidebar:
         label_visibility="collapsed",
     )
 
-    st.markdown(f"<hr style='border-color:{C['border']};margin:20px 0;'>", unsafe_allow_html=True)
-    st.markdown(f"<div class='field-group-label'>Dataset Parameters</div>", unsafe_allow_html=True)
+    st.markdown(f"<hr style='border-color:{C['border']};margin:16px 0;'>", unsafe_allow_html=True)
+    st.markdown(f"<div style='font-family:IBM Plex Mono,monospace;font-size:0.62rem;color:{C['muted']};letter-spacing:2px;margin-bottom:12px;text-transform:uppercase;'>Dataset Parameters</div>", unsafe_allow_html=True)
 
-    n_fraud      = st.number_input("Fraud Dataset Size", min_value=10000, max_value=60000, value=40000, step=5000)
-    fraud_rate   = st.number_input("Fraud Rate (%)", min_value=3, max_value=20, value=8, step=1) / 100
-    n_credit     = st.number_input("Credit Dataset Size", min_value=10000, max_value=40000, value=25000, step=5000)
-    default_rate = st.number_input("Default Rate (%)", min_value=10, max_value=35, value=18, step=1) / 100
+    n_fraud = st.number_input("Fraud Dataset Size", min_value=10000, max_value=60000, value=40000, step=5000)
+    fraud_rate_pct = st.number_input("Fraud Rate (%)", min_value=3, max_value=20, value=8, step=1)
+    fraud_rate = fraud_rate_pct / 100
+    n_credit = st.number_input("Credit Dataset Size", min_value=10000, max_value=40000, value=25000, step=5000)
+    default_rate_pct = st.number_input("Default Rate (%)", min_value=10, max_value=35, value=18, step=1)
+    default_rate = default_rate_pct / 100
 
     st.markdown(f"<hr style='border-color:{C['border']};margin:16px 0;'>", unsafe_allow_html=True)
     st.markdown(f"""
-    <div style='font-family:Share Tech Mono,monospace;font-size:0.68rem;
-                color:#8B949E;line-height:1.8;'>
-      <div style='color:{C['cyan']};margin-bottom:6px;letter-spacing:1px;'>COVERAGE</div>
-      CO1 — Proximal GD · ADMM · ALM<br>
-      CO2 — Adam · SGD · RMSProp<br>
-      CO3 — MLE · Bayesian · Hypothesis<br>
-      CO4 — Quantum Kernel SVM · VQC
+    <div style='font-family:IBM Plex Mono,monospace;font-size:0.62rem;
+                color:{C['muted']};line-height:2;text-transform:uppercase;letter-spacing:1px;'>
+      <div style='color:{C['cyan']};margin-bottom:6px;letter-spacing:2px;'>Coverage</div>
+      CO1  Proximal GD · ADMM · ALM<br>
+      CO2  Adam · SGD · RMSProp<br>
+      CO3  MLE · Bayesian · Tests<br>
+      CO4  Quantum Kernel SVM
     </div>
     """, unsafe_allow_html=True)
 
-# =================================================================
+
+# ═══════════════════════════════════════════════════════════════
 # LOAD DATA
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 with st.spinner("Generating synthetic gig worker datasets..."):
     fraud_df, n_ig, n_gps, n_rf = generate_gig_fraud_dataset(n_fraud, fraud_rate)
     credit_df = generate_credit_dataset(n_credit, default_rate)
@@ -842,16 +944,22 @@ pca_c     = PCA(n_components=6, random_state=42)
 X_pca_tr  = pca_c.fit_transform(X_tr_cs)
 X_pca_te  = pca_c.transform(X_te_cs)
 
-# =================================================================
+
+# ═══════════════════════════════════════════════════════════════
 # PAGE: OVERVIEW
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 if page == "Overview":
     st.markdown(f"""
     <div class='hero-banner'>
-      <div class='hero-title'>GIG WORKER FRAUD SHIELD<br>&nbsp;&nbsp;&nbsp;& CREDIT SCORING SYSTEM</div>
-      <div class='hero-sub' style='margin-top:12px;'>
-        Mathematics for Intelligent Systems (MIS) — End Semester Project<br>
-        TARGET: Zomato · Swiggy · Ola · Rapido · Blinkit &nbsp;|&nbsp; ~15 MILLION workers in India
+      <div class='hero-title'>GIG WORKER <span>FRAUD SHIELD</span><br>& CREDIT SCORING SYSTEM</div>
+      <div class='hero-sub'>Mathematics for Intelligent Systems (MIS) — End Semester Project</div>
+      <div style='margin-top:14px;'>
+        <span class='hero-badge'>Zomato</span>
+        <span class='hero-badge'>Swiggy</span>
+        <span class='hero-badge'>Ola</span>
+        <span class='hero-badge'>Rapido</span>
+        <span class='hero-badge'>Blinkit</span>
+        <span class='hero-badge'>15M+ Workers</span>
       </div>
     </div>
     """, unsafe_allow_html=True)
@@ -884,7 +992,7 @@ if page == "Overview":
         <div class='metric-delta'>All platform-native</div>
       </div>
       <div class='metric-card orange'>
-        <div class='metric-label'>GIG Workers in India</div>
+        <div class='metric-label'>GIG Workers India</div>
         <div class='metric-value'>15M+</div>
         <div class='metric-delta'>97% denied bank loans</div>
       </div>
@@ -892,28 +1000,29 @@ if page == "Overview":
     """, unsafe_allow_html=True)
 
     col_l, col_r = st.columns([1, 1])
+
     with col_l:
         st.markdown(f"""
         <div class='section-header'>
-          <span class='section-title'>Fraud Patterns</span>
-          <span class='section-badge'>PART A</span>
+          <span class='section-title'>Fraud Pattern Breakdown</span>
+          <span class='section-badge'>Part A</span>
         </div>
         """, unsafe_allow_html=True)
         patterns = {
-            "Incentive Gaming": (n_ig, C["gold"]),
-            "GPS Spoofing":     (n_gps, C["red"]),
-            "Rating Farming":   (n_rf, C["purple"]),
+            "Incentive Gaming":  (n_ig,  C["gold"]),
+            "GPS Spoofing":      (n_gps, C["red"]),
+            "Rating Farming":    (n_rf,  C["purple"]),
         }
         total_fraud = n_ig + n_gps + n_rf
         for name, (cnt, col) in patterns.items():
             pct = cnt / total_fraud * 100
             st.markdown(f"""
-            <div style='margin-bottom:14px;'>
+            <div style='margin-bottom:16px;'>
               <div style='display:flex;justify-content:space-between;
-                          font-family:Rajdhani,sans-serif;font-size:0.9rem;
-                          color:{C['white']};margin-bottom:5px;'>
-                <span>{name}</span>
-                <span style='color:{col};font-weight:700;'>{cnt:,} ({pct:.0f}%)</span>
+                          font-family:IBM Plex Sans,sans-serif;font-size:0.88rem;
+                          color:{C['white']};margin-bottom:6px;'>
+                <span style='color:{C["muted"]};font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;'>{name}</span>
+                <span style='color:{col};font-family:IBM Plex Mono,monospace;font-weight:600;'>{cnt:,} &nbsp; {pct:.0f}%</span>
               </div>
               <div class='prog-bar-wrap'>
                 <div class='prog-bar-fill' style='width:{pct}%;background:{col};'></div>
@@ -925,30 +1034,31 @@ if page == "Overview":
         st.markdown(f"""
         <div class='section-header'>
           <span class='section-title'>System Novelty</span>
-          <span class='section-badge'>WHY NOVEL</span>
+          <span class='section-badge'>Differentiators</span>
         </div>
         """, unsafe_allow_html=True)
         novelties = [
-            ("CO1", "Fairness-ALM",  "FPR parity across Ola/Zomato/Swiggy platforms"),
-            ("CO2", "Neural Net",    "Nonlinear GPS x Incentive x Rating interaction"),
-            ("CO3", "Mixture MLE",   "Bimodal income CV as fraud signal"),
-            ("CO4", "Quantum SVM",   "ZZ-FeatureMap kernel for small micro-lender data"),
+            ("CO1", "Fairness-ALM", "FPR parity across Ola / Zomato / Swiggy platforms"),
+            ("CO2", "Neural Net",   "Nonlinear GPS x Incentive x Rating interaction"),
+            ("CO3", "Mixture MLE",  "Bimodal income CV as fraud signal — first in India"),
+            ("CO4", "Quantum SVM",  "ZZ-FeatureMap kernel for small micro-lender data"),
         ]
         for co, method, desc in novelties:
             st.markdown(f"""
-            <div style='display:flex;gap:12px;margin-bottom:12px;
+            <div style='display:flex;gap:14px;margin-bottom:10px;
                         background:{C["panel"]};border:1px solid {C["border"]};
-                        border-radius:8px;padding:12px 16px;align-items:flex-start;'>
-              <div style='font-family:Orbitron,monospace;font-size:0.7rem;
-                          color:{C["cyan"]};background:{C["cyan"]}22;
-                          border:1px solid {C["cyan"]}44;border-radius:4px;
-                          padding:3px 7px;white-space:nowrap;min-width:34px;
-                          text-align:center;'>{co}</div>
+                        border-left:2px solid {C["cyan"]}50;
+                        border-radius:3px;padding:12px 16px;align-items:flex-start;'>
+              <div style='font-family:IBM Plex Mono,monospace;font-size:0.62rem;
+                          color:{C["cyan"]};background:{C["dark2"]};
+                          border:1px solid {C["border"]};border-radius:2px;
+                          padding:3px 7px;white-space:nowrap;min-width:30px;
+                          text-align:center;letter-spacing:1px;'>{co}</div>
               <div>
-                <div style='font-family:Rajdhani,sans-serif;font-weight:700;
-                            color:{C["gold"]};font-size:0.9rem;'>{method}</div>
-                <div style='font-family:Rajdhani,sans-serif;color:#8B949E;
-                            font-size:0.82rem;margin-top:2px;'>{desc}</div>
+                <div style='font-family:IBM Plex Mono,monospace;font-weight:500;
+                            color:{C["white"]};font-size:0.82rem;'>{method}</div>
+                <div style='font-family:IBM Plex Sans,sans-serif;color:{C["muted"]};
+                            font-size:0.78rem;margin-top:3px;'>{desc}</div>
               </div>
             </div>
             """, unsafe_allow_html=True)
@@ -961,20 +1071,21 @@ if page == "Overview":
     t1, t2 = st.tabs(["FRAUD DETECTION DATA", "CREDIT RISK DATA"])
     with t1:
         preview_f = fraud_df.head(8).copy()
-        preview_f["FraudLabel"] = preview_f["FraudLabel"].map({0: "Legitimate", 1: "Fraudulent"})
+        preview_f["FraudLabel"] = preview_f["FraudLabel"].map({0: "Legitimate", 1: "Fraud"})
         st.dataframe(preview_f, use_container_width=True, height=260)
     with t2:
         preview_c = credit_df.head(8).copy()
-        preview_c["Default"] = preview_c["Default"].map({0: "Good Standing", 1: "Default"})
+        preview_c["Default"] = preview_c["Default"].map({0: "Non-Default", 1: "Default"})
         st.dataframe(preview_c, use_container_width=True, height=260)
 
-# =================================================================
+
+# ═══════════════════════════════════════════════════════════════
 # PAGE: FRAUD DETECTION
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 elif page == "Fraud Detection":
     st.markdown(f"""
-    <div class='hero-banner' style='padding:24px 32px;'>
-      <div class='hero-title' style='font-size:1.5rem;'>FRAUD DETECTION — PART A</div>
+    <div class='hero-banner' style='padding:22px 30px;'>
+      <div class='hero-title' style='font-size:1.2rem;'>FRAUD DETECTION — PART A</div>
       <div class='hero-sub'>CO1: Proximal GD · Fairness-ALM · ADMM &nbsp;|&nbsp; CO2: Neural Networks</div>
     </div>
     """, unsafe_allow_html=True)
@@ -984,14 +1095,14 @@ elif page == "Fraud Detection":
     with tab_co1:
         st.markdown(f"""
         <div class='novelty-box'>
-          <h4>CO1 COVERAGE — Unit 2: Matrix Splitting · Proximal Algorithms · Augmented Lagrangian</h4>
-          <p>Proximal GD: L1-regularised logistic regression with automatic feature selection</p>
-          <p>Fairness-ALM (NOVEL): Ensures FPR(Ola) ≤ FPR(Zomato)+ε — first for gig platforms</p>
-          <p>ADMM: Distributed training across platforms without sharing raw worker data</p>
+          <h4>CO1 Coverage — Unit 2: Matrix Splitting · Proximal Algorithms · Augmented Lagrangian</h4>
+          <p><span>Proximal GD:</span> L1-regularised logistic regression with automatic feature selection via soft-thresholding.</p>
+          <p><span>Fairness-ALM (Novel):</span> Augmented Lagrangian enforcing FPR(Ola) ≤ FPR(Zomato) + epsilon — first platform-fairness constraint for gig fraud.</p>
+          <p><span>ADMM:</span> Distributed training across platforms without sharing raw worker data.</p>
         </div>
         """, unsafe_allow_html=True)
 
-        with st.spinner("Running CO1 models (Proximal GD · Fairness-ALM · ADMM)..."):
+        with st.spinner("Running CO1 models — Proximal GD, Fairness-ALM, ADMM..."):
             w_pgd, cost_pgd, sparse_pgd, auc_pgd, f1_pgd, active_pgd = run_proximal_gd(
                 X_tr_fb, y_tr_f, X_te_fb, y_te_f, feat_cols_f)
             z_ad, cost_ad, pr_ad, dr_ad, auc_ad, f1_ad, spars_ad = run_admm(
@@ -1006,12 +1117,12 @@ elif page == "Fraud Detection":
           <div class='metric-card cyan'>
             <div class='metric-label'>Proximal GD — AUC</div>
             <div class='metric-value'>{auc_pgd:.4f}</div>
-            <div class='metric-delta'>Active features: {active_pgd}/{len(feat_cols_f)}</div>
+            <div class='metric-delta'>Active features: {active_pgd} / {len(feat_cols_f)}</div>
           </div>
           <div class='metric-card gold'>
             <div class='metric-label'>Fairness-ALM — AUC</div>
             <div class='metric-value'>{auc_alm:.4f}</div>
-            <div class='metric-delta'>FPR gap guaranteed within 5%</div>
+            <div class='metric-delta'>FPR gap guaranteed &le; 5%</div>
           </div>
           <div class='metric-card red'>
             <div class='metric-label'>ADMM — AUC</div>
@@ -1027,32 +1138,32 @@ elif page == "Fraud Detection":
         """, unsafe_allow_html=True)
 
         fig, axes = plt.subplots(2, 3, figsize=(18, 10), facecolor=C["bg"])
-        fig.suptitle("CO1 — Proximal GD + Fairness-ALM + ADMM", fontsize=13, color=C["cyan"], fontweight="bold")
+        fig.suptitle("CO1 — Proximal GD + Fairness-ALM + ADMM", fontsize=12, color=C["white"], fontweight="bold", y=0.98)
 
         ax = axes[0,0]
-        ax.semilogy(cost_pgd, color=C["cyan"],  lw=2, label="Proximal GD")
-        ax.semilogy(cost_alm, color=C["gold"],  lw=2, label="Fairness-ALM")
-        ax.semilogy(cost_ad,  color=C["red"],   lw=2, label="ADMM")
-        ax.set_title("Cost Convergence", color=C["gold"]); ax.set_xlabel("Iteration")
+        ax.semilogy(cost_pgd, color=C["cyan"],   lw=1.5, label="Proximal GD")
+        ax.semilogy(cost_alm, color=C["gold"],   lw=1.5, label="Fairness-ALM")
+        ax.semilogy(cost_ad,  color=C["red"],    lw=1.5, label="ADMM")
+        ax.set_title("Cost Convergence", color=C["muted"], fontsize=10); ax.set_xlabel("Iteration")
         ax.legend(fontsize=8)
 
         ax = axes[0,1]
-        ax.plot(viol_fair, color=C["orange"], lw=2.5)
-        ax.fill_between(range(len(viol_fair)), viol_fair, alpha=0.15, color=C["orange"])
-        ax.axhline(0, color="white", lw=0.8, ls=":")
-        ax.set_title("NOVEL: Platform Fairness Constraint\nFPR(Ola) - FPR(Zomato) - epsilon", color=C["gold"])
+        ax.plot(viol_fair, color=C["orange"], lw=2)
+        ax.fill_between(range(len(viol_fair)), viol_fair, alpha=0.12, color=C["orange"])
+        ax.axhline(0, color=C["muted"], lw=0.8, ls=":")
+        ax.set_title("Platform Fairness Constraint\nFPR(Ola) - FPR(Zomato) - epsilon", color=C["muted"], fontsize=10)
         ax.set_xlabel("Outer Iteration"); ax.set_ylabel("Violation")
 
         ax = axes[0,2]
-        ax.semilogy(pr_ad, color=C["green"],  lw=2, label="Primal norm(w-z)")
-        ax.semilogy(dr_ad, color=C["purple"], lw=2, label="Dual rho*norm(dz)")
-        ax.set_title("ADMM Residuals (Convergence)", color=C["gold"])
+        ax.semilogy(pr_ad, color=C["green"],  lw=1.5, label="Primal ||w-z||")
+        ax.semilogy(dr_ad, color=C["purple"], lw=1.5, label="Dual rho*||dz||")
+        ax.set_title("ADMM Residuals", color=C["muted"], fontsize=10)
         ax.set_xlabel("Iteration"); ax.legend(fontsize=8)
 
         ax = axes[1,0]
-        ax.plot(sparse_pgd, color=C["cyan"], lw=2.5)
-        ax.fill_between(range(len(sparse_pgd)), sparse_pgd, alpha=0.15, color=C["cyan"])
-        ax.set_title("Proximal GD — Sparsity Growth\n(Auto feature selection)", color=C["gold"])
+        ax.plot(sparse_pgd, color=C["cyan"], lw=1.5)
+        ax.fill_between(range(len(sparse_pgd)), sparse_pgd, alpha=0.1, color=C["cyan"])
+        ax.set_title("Proximal GD — Sparsity Growth\n(Automatic feature selection)", color=C["muted"], fontsize=10)
         ax.set_ylabel("Zero-weight fraction")
 
         ax = axes[1,1]
@@ -1061,8 +1172,9 @@ elif page == "Fraud Detection":
         top = np.argsort(np.abs(z_ad.flatten()))[-10:]
         vals = z_ad.flatten()[top]
         bc = [C["red"] if v > 0 else C["green"] for v in vals]
-        ax.barh([fn[i] for i in top], vals, color=bc, alpha=0.85, edgecolor="white", lw=0.4)
-        ax.set_title("ADMM — Top Fraud Feature Weights", color=C["gold"]); ax.tick_params(labelsize=7)
+        ax.barh([fn[i] for i in top], vals, color=bc, alpha=0.8, edgecolor=C["border"], lw=0.4)
+        ax.set_title("ADMM — Top Fraud Feature Weights", color=C["muted"], fontsize=10)
+        ax.tick_params(labelsize=7)
 
         ax = axes[1,2]
         for w_, lbl, col in [
@@ -1071,124 +1183,136 @@ elif page == "Fraud Detection":
             (z_ad,  f"ADMM         AUC={auc_ad:.3f}",  C["red"]),
         ]:
             fp, tp, _ = roc_curve(y_te_f, proba_lr(X_te_fb, w_))
-            ax.plot(fp, tp, lw=2, color=col, label=lbl)
-        ax.plot([0,1],[0,1],"w--",lw=1)
-        ax.set_title("ROC Curves", color=C["gold"]); ax.legend(fontsize=7)
+            ax.plot(fp, tp, lw=1.5, color=col, label=lbl)
+        ax.plot([0,1],[0,1], color=C["border"], lw=0.8, ls="--")
+        ax.set_title("ROC Curves", color=C["muted"], fontsize=10); ax.legend(fontsize=7)
 
-        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.tight_layout(rect=[0, 0, 1, 0.97])
         st.pyplot(fig, use_container_width=True)
         plt.close()
 
     with tab_co2:
         st.markdown(f"""
         <div class='novelty-box'>
-          <h4>CO2 COVERAGE — Unit 2: Optimization Methods for Neural Networks</h4>
-          <p>Architecture: Input({len(feat_cols_f)}) → 64 ReLU → 32 ReLU → 1 Sigmoid</p>
-          <p>Adam: Adaptive moments — fastest convergence on sparse fraud features</p>
-          <p>SGD+Momentum: Classical baseline with Nesterov acceleration</p>
-          <p>RMSProp: Adaptive LR — handles noisy gradient from imbalanced classes</p>
+          <h4>CO2 Coverage — Unit 2: Optimization Methods for Neural Networks</h4>
+          <p><span>Architecture:</span> Input({len(feat_cols_f)}) -> 64 ReLU -> 32 ReLU -> 1 Sigmoid, trained 80 epochs.</p>
+          <p><span>Adam:</span> Adaptive moments — fastest convergence on sparse fraud features.</p>
+          <p><span>SGD + Momentum:</span> Classical baseline with Nesterov acceleration.</p>
+          <p><span>RMSProp:</span> Adaptive learning rate — handles noisy gradients from imbalanced classes.</p>
         </div>
         """, unsafe_allow_html=True)
 
-        with st.spinner("Training neural networks (Adam · SGD · RMSProp) — 80 epochs each..."):
+        with st.spinner("Training neural networks — Adam, SGD, RMSProp — 80 epochs each..."):
             nn_results = run_neural_networks(X_tr_fs, y_tr_f, X_te_fs, y_te_f)
 
         best_nn_name = max(nn_results, key=lambda k: nn_results[k]["auc"])
         best_nn = nn_results[best_nn_name]
 
-        colors_map = {"Adam": "cyan", "SGD+Mom": "orange", "RMSProp": "purple"}
+        color_map = {"Adam": "cyan", "SGD+Mom": "orange", "RMSProp": "purple"}
         st.markdown(f"""
         <div class='metric-grid'>
           {''.join([f"""
-          <div class='metric-card {colors_map.get(n, "cyan")}'>
+          <div class='metric-card {color_map.get(n,"cyan")}'>
             <div class='metric-label'>{n} — AUC</div>
             <div class='metric-value'>{r["auc"]:.4f}</div>
-            <div class='metric-delta'>F1={r["f1"]:.4f} | Prec={r["prec"]:.4f}</div>
+            <div class='metric-delta'>F1={r["f1"]:.4f}  Prec={r["prec"]:.4f}</div>
           </div>""" for n, r in nn_results.items()])}
           <div class='metric-card green'>
             <div class='metric-label'>Best Model</div>
             <div class='metric-value'>{best_nn_name}</div>
-            <div class='metric-delta'>AUC={best_nn["auc"]:.4f}</div>
+            <div class='metric-delta'>AUC = {best_nn["auc"]:.4f}</div>
           </div>
         </div>
         """, unsafe_allow_html=True)
 
         fig2, axes2 = plt.subplots(2, 3, figsize=(18, 10), facecolor=C["bg"])
-        fig2.suptitle("CO2 — Neural Network Optimisers for Gig Worker Fraud", fontsize=13, color=C["cyan"], fontweight="bold")
+        fig2.suptitle("CO2 — Neural Network Optimisers for Gig Worker Fraud", fontsize=12, color=C["white"], fontweight="bold", y=0.98)
 
         for nm, r in nn_results.items():
-            axes2[0,0].plot(r["train_loss"], color=r["color"], lw=2, label=nm)
-        axes2[0,0].set_title("Training Loss", color=C["gold"]); axes2[0,0].legend()
+            axes2[0,0].plot(r["train_loss"], color=r["color"], lw=1.5, label=nm)
+        axes2[0,0].set_title("Training Loss", color=C["muted"], fontsize=10); axes2[0,0].legend()
 
         for nm, r in nn_results.items():
-            axes2[0,1].plot(r["val_loss"], color=r["color"], lw=2, ls="--", label=nm)
-        axes2[0,1].set_title("Validation Loss", color=C["gold"]); axes2[0,1].legend()
+            axes2[0,1].plot(r["val_loss"], color=r["color"], lw=1.5, ls="--", label=nm)
+        axes2[0,1].set_title("Validation Loss", color=C["muted"], fontsize=10); axes2[0,1].legend()
 
         for nm, r in nn_results.items():
             fp, tp, _ = roc_curve(y_te_f, r["proba"])
-            axes2[0,2].plot(fp, tp, color=r["color"], lw=2, label=f"{nm} ({r['auc']:.3f})")
-        axes2[0,2].plot([0,1],[0,1],"w--",lw=1)
-        axes2[0,2].set_title("ROC Curves", color=C["gold"]); axes2[0,2].legend(fontsize=7)
+            axes2[0,2].plot(fp, tp, color=r["color"], lw=1.5, label=f"{nm} ({r['auc']:.3f})")
+        axes2[0,2].plot([0,1],[0,1], color=C["border"], lw=0.8, ls="--")
+        axes2[0,2].set_title("ROC Curves", color=C["muted"], fontsize=10); axes2[0,2].legend(fontsize=7)
 
         cm = confusion_matrix(y_te_f, best_nn["preds"])
         sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=axes2[1,0],
                     xticklabels=["Legit","Fraud"], yticklabels=["Legit","Fraud"],
-                    annot_kws={"size":14})
-        axes2[1,0].set_title(f"Confusion Matrix ({best_nn_name})", color=C["gold"])
+                    annot_kws={"size":14}, linewidths=0.5)
+        axes2[1,0].set_title(f"Confusion Matrix ({best_nn_name})", color=C["muted"], fontsize=10)
 
         metrics_nm = list(nn_results.keys())
         aucs_nm    = [nn_results[n]["auc"] for n in metrics_nm]
         f1s_nm     = [nn_results[n]["f1"]  for n in metrics_nm]
         x_nm = np.arange(len(metrics_nm)); w_nm = 0.35
-        axes2[1,1].bar(x_nm-w_nm/2, aucs_nm, w_nm, color=C["cyan"],   alpha=0.85, label="AUC")
-        axes2[1,1].bar(x_nm+w_nm/2, f1s_nm,  w_nm, color=C["orange"], alpha=0.85, label="F1")
+        axes2[1,1].bar(x_nm-w_nm/2, aucs_nm, w_nm, color=C["cyan"],   alpha=0.8, label="AUC")
+        axes2[1,1].bar(x_nm+w_nm/2, f1s_nm,  w_nm, color=C["orange"], alpha=0.8, label="F1")
         axes2[1,1].set_xticks(x_nm); axes2[1,1].set_xticklabels(metrics_nm)
-        axes2[1,1].set_title("AUC vs F1 Comparison", color=C["gold"]); axes2[1,1].legend()
+        axes2[1,1].set_title("AUC vs F1 Comparison", color=C["muted"], fontsize=10); axes2[1,1].legend()
 
         for nm, r in nn_results.items():
-            axes2[1,2].hist(r["proba"][y_te_f==0], bins=30, alpha=0.45, color=r["color"],
-                            label=f"{nm} Legit", density=True)
-            axes2[1,2].hist(r["proba"][y_te_f==1], bins=30, alpha=0.75, color=r["color"],
-                            label=f"{nm} Fraud", density=True, histtype="step", lw=2)
-        axes2[1,2].set_title("Prediction Probability Distributions", color=C["gold"])
+            axes2[1,2].hist(r["proba"][y_te_f==0], bins=30, alpha=0.45, color=r["color"], label=f"{nm} Legit", density=True)
+            axes2[1,2].hist(r["proba"][y_te_f==1], bins=30, alpha=0.75, color=r["color"], label=f"{nm} Fraud", density=True, histtype="step", lw=1.5)
+        axes2[1,2].set_title("Prediction Probability Distributions", color=C["muted"], fontsize=10)
         axes2[1,2].set_xlabel("Fraud Probability"); axes2[1,2].legend(fontsize=6)
 
-        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.tight_layout(rect=[0, 0, 1, 0.97])
         st.pyplot(fig2, use_container_width=True)
         plt.close()
 
-        # --- Single Worker Prediction Form ---
+        # ── Worker Fraud Prediction Form ──────────────────────────
         st.markdown(f"""
-        <div class='section-header' style='margin-top:24px;'>
-          <span class='section-title'>Single Worker Fraud Prediction</span>
-          <span class='section-badge'>INTERACTIVE</span>
+        <div class='section-header' style='margin-top:28px;'>
+          <span class='section-title'>Worker Fraud Assessment</span>
+          <span class='section-badge'>Interactive</span>
+        </div>
+        <div class='novelty-box' style='margin-bottom:20px;'>
+          <h4>How to use</h4>
+          <p>Enter platform metrics for a specific worker below. All fields accept numerical values.
+          Click <span>Run Assessment</span> to compute fraud probability using the best-performing neural network.</p>
         </div>
         """, unsafe_allow_html=True)
 
-        with st.form("fraud_prediction_form"):
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.markdown(f"<div class='field-group-label'>Trip Behaviour</div>", unsafe_allow_html=True)
+        with st.form("fraud_form"):
+            st.markdown(f"<div class='form-group-label'>Trip & Completion Metrics</div>", unsafe_allow_html=True)
+            fc1, fc2, fc3 = st.columns(3)
+            with fc1:
                 tcr = st.number_input("Trip Completion Rate (0–1)", min_value=0.0, max_value=1.0, value=0.90, step=0.01, format="%.2f")
-                atd = st.number_input("Avg Trip Duration (minutes)", min_value=1.0, max_value=60.0, value=20.0, step=0.5)
-                icv = st.number_input("Income CV (0=stable)", min_value=0.0, max_value=1.0, value=0.10, step=0.01, format="%.2f")
-                tnt = st.number_input("Trips Near Threshold", min_value=0, max_value=15, value=2)
-                gje = st.number_input("GPS Jump Events", min_value=0, max_value=30, value=1)
-            with col2:
-                st.markdown(f"<div class='field-group-label'>Rating & Incentive</div>", unsafe_allow_html=True)
-                rtv = st.number_input("Rating Velocity", min_value=0, max_value=40, value=4)
-                phr = st.number_input("Peak Hour Ratio (0–1)", min_value=0.0, max_value=1.0, value=0.60, step=0.01, format="%.2f")
-                ctr = st.number_input("Concurrent Trips", min_value=0, max_value=8, value=0)
-                ihr = st.number_input("Incentive Hit Rate (0–1)", min_value=0.0, max_value=1.0, value=0.20, step=0.01, format="%.2f")
-                psw = st.number_input("Platform Switches", min_value=0, max_value=8, value=1)
-            with col3:
-                st.markdown(f"<div class='field-group-label'>Behavioural Signals</div>", unsafe_allow_html=True)
+                atd = st.number_input("Avg Trip Duration (min)", min_value=1.0, max_value=60.0, value=20.0, step=0.5, format="%.1f")
+            with fc2:
+                gje = st.number_input("GPS Jump Events", min_value=0, max_value=30, value=1, step=1)
+                tnt = st.number_input("Trips Near Threshold", min_value=0, max_value=15, value=2, step=1)
+            with fc3:
+                ctr = st.number_input("Concurrent Trips", min_value=0, max_value=8, value=0, step=1)
                 ntr = st.number_input("Night Trip Ratio (0–1)", min_value=0.0, max_value=1.0, value=0.10, step=0.01, format="%.2f")
-                abk = st.number_input("App BG Kill Rate (0–1)", min_value=0.0, max_value=1.0, value=0.10, step=0.01, format="%.2f")
+
+            st.markdown(f"<div class='divider'></div><div class='form-group-label'>Income & Incentive Metrics</div>", unsafe_allow_html=True)
+            fi1, fi2, fi3 = st.columns(3)
+            with fi1:
+                icv = st.number_input("Income Coefficient of Variation (0–1)", min_value=0.0, max_value=1.0, value=0.10, step=0.01, format="%.2f")
+                ihr = st.number_input("Incentive Hit Rate (0–1)", min_value=0.0, max_value=1.0, value=0.20, step=0.01, format="%.2f")
+            with fi2:
+                phr = st.number_input("Peak Hour Ratio (0–1)", min_value=0.0, max_value=1.0, value=0.60, step=0.01, format="%.2f")
+                psw = st.number_input("Platform Switches", min_value=0, max_value=8, value=1, step=1)
+            with fi3:
+                rtv = st.number_input("Rating Velocity", min_value=0, max_value=40, value=4, step=1)
+                abk = st.number_input("App Background Kill Rate (0–1)", min_value=0.0, max_value=1.0, value=0.10, step=0.01, format="%.2f")
+
+            st.markdown(f"<div class='divider'></div><div class='form-group-label'>Customer Behaviour</div>", unsafe_allow_html=True)
+            fb1, fb2 = st.columns(2)
+            with fb1:
                 rcr = st.number_input("Return Customer Ratio (0–1)", min_value=0.0, max_value=1.0, value=0.10, step=0.01, format="%.2f")
+            with fb2:
                 ocr = st.number_input("Order Cancel Rate (0–1)", min_value=0.0, max_value=1.0, value=0.10, step=0.01, format="%.2f")
 
-            submitted = st.form_submit_button("RUN FRAUD ANALYSIS")
+            submitted = st.form_submit_button("RUN ASSESSMENT")
 
         if submitted:
             sample = np.array([[tcr,atd,icv,tnt,gje,rtv,phr,ctr,ihr,psw,ntr,abk,rcr,ocr]])
@@ -1201,42 +1325,56 @@ elif page == "Fraud Detection":
             verdict_text = "FRAUD DETECTED" if prob_sample > 0.5 else "LEGITIMATE WORKER"
             risk_level   = "HIGH RISK" if prob_sample > 0.7 else "MEDIUM RISK" if prob_sample > 0.5 else "LOW RISK"
             st.markdown(f"""
-            <div style='background:{C["panel"]};border:2px solid {verdict_col};
-                        border-radius:12px;padding:24px 32px;margin-top:16px;text-align:center;'>
-              <div style='font-family:Orbitron,monospace;font-size:1.6rem;
-                          font-weight:900;color:{verdict_col};
-                          text-shadow:0 0 20px {verdict_col}66;'>{verdict_text}</div>
-              <div style='font-family:Share Tech Mono,monospace;font-size:1.1rem;
-                          color:{C["white"]};margin-top:10px;'>
-                Fraud Probability: <span style='color:{verdict_col};font-weight:700;
-                                                font-size:1.4rem;'>{prob_sample:.4f}</span>
+            <div style='background:{C["panel"]};border:1px solid {C["border"]};
+                        border-top:2px solid {verdict_col};
+                        border-radius:4px;padding:28px 32px;margin-top:16px;'>
+              <div style='display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;'>
+                <div>
+                  <div style='font-family:IBM Plex Mono,monospace;font-size:0.65rem;
+                              color:{C["muted"]};letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;'>Assessment Result</div>
+                  <div style='font-family:IBM Plex Mono,monospace;font-size:1.4rem;
+                              font-weight:600;color:{verdict_col};'>{verdict_text}</div>
+                  <div style='font-family:IBM Plex Sans,sans-serif;font-size:0.82rem;
+                              color:{C["muted"]};margin-top:6px;letter-spacing:1px;text-transform:uppercase;'>{risk_level}</div>
+                </div>
+                <div style='text-align:right;'>
+                  <div style='font-family:IBM Plex Mono,monospace;font-size:0.65rem;
+                              color:{C["muted"]};letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;'>Fraud Probability</div>
+                  <div style='font-family:IBM Plex Mono,monospace;font-size:2.2rem;
+                              font-weight:600;color:{verdict_col};'>{prob_sample:.4f}</div>
+                  <div style='font-family:IBM Plex Sans,sans-serif;font-size:0.75rem;
+                              color:{C["muted"]};margin-top:4px;'>Neural Network (Adam Optimiser)</div>
+                </div>
               </div>
-              <div style='font-family:Rajdhani,sans-serif;font-size:0.9rem;
-                          color:#8B949E;margin-top:6px;'>{risk_level} — Neural Network (Adam)</div>
-              <div class='prog-bar-wrap' style='margin:14px auto;max-width:400px;height:12px;'>
-                <div class='prog-bar-fill' style='width:{prob_sample*100:.0f}%;
-                     background:linear-gradient(90deg,{C["green"]},{verdict_col});'></div>
+              <div class='prog-bar-wrap' style='margin-top:20px;height:6px;'>
+                <div class='prog-bar-fill' style='width:{prob_sample*100:.1f}%;
+                     background:linear-gradient(90deg,{C["green"]},{C["gold"]},{verdict_col});'></div>
+              </div>
+              <div style='display:flex;justify-content:space-between;
+                          font-family:IBM Plex Mono,monospace;font-size:0.62rem;color:{C["muted"]};margin-top:4px;'>
+                <span>0.00 — Safe</span><span>0.50 — Threshold</span><span>1.00 — Certain Fraud</span>
               </div>
             </div>
             """, unsafe_allow_html=True)
 
-# =================================================================
+
+# ═══════════════════════════════════════════════════════════════
 # PAGE: CREDIT RISK
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 elif page == "Credit Risk":
     st.markdown(f"""
-    <div class='hero-banner' style='padding:24px 32px;'>
-      <div class='hero-title' style='font-size:1.5rem;'>GIG WORKER CREDIT RISK — PART B</div>
+    <div class='hero-banner' style='padding:22px 30px;'>
+      <div class='hero-title' style='font-size:1.2rem;'>GIG WORKER CREDIT RISK — PART B</div>
       <div class='hero-sub'>Platform-native credit score · No CIBIL required · 15M unbanked workers</div>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class='novelty-box'>
-      <h4>REAL-WORLD PROBLEM — NOVEL SOLUTION</h4>
-      <p>Banks reject 97% of gig worker loan applications — no salary slip, no CIBIL score available</p>
-      <p>This model uses platform-native data: trips, rating, tenure, income CV — zero external data needed</p>
-      <p>Income CV is completely absent from CIBIL/Experian models — first such credit feature in India</p>
+      <h4>Real-World Problem — Novel Solution</h4>
+      <p>Banks reject 97% of gig worker loan applications — no salary slip, no CIBIL score accepted.</p>
+      <p>This model uses <span>platform-native data</span>: trips, rating, tenure, income CV — zero external data required.</p>
+      <p><span>Income CV</span> as a credit feature is completely absent from all existing CIBIL / Experian models in India.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1256,15 +1394,15 @@ elif page == "Credit Risk":
       <div class='metric-card red'>
         <div class='metric-label'>Default Detection F1</div>
         <div class='metric-value'>{best_credit["f1"]:.4f}</div>
-        <div class='metric-delta'>Recall={best_credit["rec"]:.4f}</div>
+        <div class='metric-delta'>Recall = {best_credit["rec"]:.4f}</div>
       </div>
       <div class='metric-card green'>
-        <div class='metric-label'>Avg Monthly Income (Good)</div>
-        <div class='metric-value'>Rs. {good_c["monthly_income_est"].mean():,.0f}</div>
-        <div class='metric-delta'>vs Rs. {default_c["monthly_income_est"].mean():,.0f} defaulters</div>
+        <div class='metric-label'>Avg Monthly Income (Non-Default)</div>
+        <div class='metric-value'>Rs {good_c["monthly_income_est"].mean():,.0f}</div>
+        <div class='metric-delta'>vs Rs {default_c["monthly_income_est"].mean():,.0f} defaulters</div>
       </div>
       <div class='metric-card gold'>
-        <div class='metric-label'>Avg Platform Tenure (Good)</div>
+        <div class='metric-label'>Avg Platform Tenure (Non-Default)</div>
         <div class='metric-value'>{good_c["platform_tenure_mo"].mean():.1f} mo</div>
         <div class='metric-delta'>vs {default_c["platform_tenure_mo"].mean():.1f} mo defaulters</div>
       </div>
@@ -1272,26 +1410,27 @@ elif page == "Credit Risk":
     """, unsafe_allow_html=True)
 
     fig3, axes3 = plt.subplots(2, 3, figsize=(18, 10), facecolor=C["bg"])
-    fig3.suptitle("CO2 — Neural Networks for Credit Risk Scoring", fontsize=13, color=C["cyan"], fontweight="bold")
+    fig3.suptitle("CO2 — Neural Networks for Credit Risk Scoring", fontsize=12, color=C["white"], fontweight="bold", y=0.98)
 
     for nm, r in nn_credit.items():
-        axes3[0,0].plot(r["train_loss"], color=r["color"], lw=2, label=nm)
-    axes3[0,0].set_title("Training Loss", color=C["gold"]); axes3[0,0].legend()
+        axes3[0,0].plot(r["train_loss"], color=r["color"], lw=1.5, label=nm)
+    axes3[0,0].set_title("Training Loss", color=C["muted"], fontsize=10); axes3[0,0].legend()
 
     for nm, r in nn_credit.items():
         fp, tp, _ = roc_curve(y_te_c, r["proba"])
-        axes3[0,1].plot(fp, tp, color=r["color"], lw=2, label=f"{nm} ({r['auc']:.3f})")
-    axes3[0,1].plot([0,1],[0,1],"w--",lw=1)
-    axes3[0,1].set_title("ROC Curves", color=C["gold"]); axes3[0,1].legend(fontsize=8)
+        axes3[0,1].plot(fp, tp, color=r["color"], lw=1.5, label=f"{nm} ({r['auc']:.3f})")
+    axes3[0,1].plot([0,1],[0,1], color=C["border"], lw=0.8, ls="--")
+    axes3[0,1].set_title("ROC Curves", color=C["muted"], fontsize=10); axes3[0,1].legend(fontsize=8)
 
     cm_c = confusion_matrix(y_te_c, best_credit["preds"])
     sns.heatmap(cm_c, annot=True, fmt="d", cmap="Blues", ax=axes3[0,2],
-                xticklabels=["Good","Default"], yticklabels=["Good","Default"], annot_kws={"size":14})
-    axes3[0,2].set_title(f"Confusion Matrix ({best_credit_name})", color=C["gold"])
+                xticklabels=["Non-Default","Default"], yticklabels=["Non-Default","Default"],
+                annot_kws={"size":14}, linewidths=0.5)
+    axes3[0,2].set_title(f"Confusion Matrix ({best_credit_name})", color=C["muted"], fontsize=10)
 
     axes3[1,0].hist(good_c["income_cv"], bins=40, density=True, alpha=0.55, color=C["green"], label="Non-defaulter")
     axes3[1,0].hist(default_c["income_cv"], bins=40, density=True, alpha=0.7, color=C["red"], label="Defaulter")
-    axes3[1,0].set_title("NOVEL: Income CV Distribution\n(Low CV = reliable = creditworthy)", color=C["gold"])
+    axes3[1,0].set_title("Income CV Distribution\n(Low CV = reliable = creditworthy)", color=C["muted"], fontsize=10)
     axes3[1,0].legend()
 
     plat_labels = ["Zomato","Ola","Swiggy","Rapido"]
@@ -1299,57 +1438,61 @@ elif page == "Credit Risk":
     for pi, (pl, col) in enumerate(zip(plat_labels, cols_p)):
         sub = credit_df[credit_df["platform"]==pi]
         if len(sub) > 0:
-            axes3[1,1].bar(pi, sub["Default"].mean()*100, color=col, alpha=0.85, edgecolor="white", lw=0.5)
+            axes3[1,1].bar(pi, sub["Default"].mean()*100, color=col, alpha=0.8, edgecolor=C["border"], lw=0.5)
             axes3[1,1].text(pi, sub["Default"].mean()*100+0.3, f"{sub['Default'].mean()*100:.1f}%",
-                            ha="center", color="white", fontsize=9, fontweight="bold")
-    axes3[1,1].set_title("Default Rate by Platform", color=C["gold"])
+                            ha="center", color=C["white"], fontsize=9, fontweight="bold")
+    axes3[1,1].set_title("Default Rate by Platform", color=C["muted"], fontsize=10)
     axes3[1,1].set_ylabel("Default Rate (%)"); axes3[1,1].set_xticks(range(4)); axes3[1,1].set_xticklabels(plat_labels)
 
-    axes3[1,2].hist(best_credit["proba"][y_te_c==0], bins=30, alpha=0.6, color=C["green"], label="Good", density=True)
-    axes3[1,2].hist(best_credit["proba"][y_te_c==1], bins=30, alpha=0.7, color=C["red"],   label="Default", density=True)
-    axes3[1,2].axvline(0.5, color=C["gold"], lw=2, ls="--", label="Decision boundary")
-    axes3[1,2].set_title("Predicted Default Probability Separation", color=C["gold"])
+    axes3[1,2].hist(best_credit["proba"][y_te_c==0], bins=30, alpha=0.6, color=C["green"], label="Non-default", density=True)
+    axes3[1,2].hist(best_credit["proba"][y_te_c==1], bins=30, alpha=0.7, color=C["red"],   label="Default",     density=True)
+    axes3[1,2].axvline(0.5, color=C["gold"], lw=1.5, ls="--", label="Decision boundary")
+    axes3[1,2].set_title("Predicted Default Probability\nSeparation", color=C["muted"], fontsize=10)
     axes3[1,2].legend()
 
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
+    plt.tight_layout(rect=[0, 0, 1, 0.97])
     st.pyplot(fig3, use_container_width=True)
     plt.close()
 
-    # --- Credit Score Form ---
+    # ── Microloan Eligibility Form ──────────────────────────────
     st.markdown(f"""
-    <div class='section-header' style='margin-top:24px;'>
+    <div class='section-header' style='margin-top:28px;'>
       <span class='section-title'>Microloan Eligibility Calculator</span>
-      <span class='section-badge'>INTERACTIVE</span>
+      <span class='section-badge'>Interactive</span>
     </div>
     """, unsafe_allow_html=True)
 
-    with st.form("credit_score_form"):
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.markdown(f"<div class='field-group-label'>Work Profile</div>", unsafe_allow_html=True)
-            wta  = st.number_input("Weekly Trips Average", min_value=2, max_value=80, value=35)
-            icv2 = st.number_input("Income CV (0=stable)", min_value=0.0, max_value=1.0, value=0.15, step=0.01, format="%.2f")
+    with st.form("credit_form"):
+        st.markdown(f"<div class='form-group-label'>Platform & Work Profile</div>", unsafe_allow_html=True)
+        cc1, cc2, cc3 = st.columns(3)
+        with cc1:
+            wta  = st.number_input("Weekly Trips Average", min_value=2, max_value=80, value=35, step=1)
             phr2 = st.number_input("Peak Hour Ratio (0–1)", min_value=0.0, max_value=1.0, value=0.60, step=0.01, format="%.2f")
-            rat  = st.number_input("App Rating", min_value=2.5, max_value=5.0, value=4.4, step=0.05, format="%.2f")
-        with c2:
-            st.markdown(f"<div class='field-group-label'>Platform History</div>", unsafe_allow_html=True)
-            ten = st.number_input("Platform Tenure (months)", min_value=0, max_value=60, value=18)
-            mp  = st.selectbox("Multi-platform Worker", ["Yes", "No"])
-            svr = st.number_input("UPI Savings Ratio (0–1)", min_value=0.0, max_value=1.0, value=0.30, step=0.01, format="%.2f")
-            ir  = st.number_input("Incentive Reliance (0–1)", min_value=0.0, max_value=1.0, value=0.20, step=0.01, format="%.2f")
-        with c3:
-            st.markdown(f"<div class='field-group-label'>Financial Details</div>", unsafe_allow_html=True)
-            cc   = st.number_input("Complaint Count", min_value=0, max_value=10, value=1)
+            ten  = st.number_input("Platform Tenure (months)", min_value=0, max_value=60, value=18, step=1)
+        with cc2:
+            icv2 = st.number_input("Income CV — 0 = stable (0–1)", min_value=0.0, max_value=1.0, value=0.15, step=0.01, format="%.2f")
+            rat  = st.number_input("App Rating (2.5–5.0)", min_value=2.5, max_value=5.0, value=4.4, step=0.05, format="%.2f")
+            cc   = st.number_input("Complaint Count", min_value=0, max_value=10, value=1, step=1)
+        with cc3:
+            mp   = st.selectbox("Multi-platform Worker", ["Yes", "No"])
             vo   = st.selectbox("Vehicle Owned", ["Yes", "No"])
-            loan = st.number_input("Loan Amount Requested (Rs.)", min_value=5000, max_value=50000, value=15000, step=500)
-            inc  = st.number_input("Monthly Income Estimate (Rs.)", min_value=2000, max_value=40000, value=14000, step=500)
+            ir   = st.number_input("Incentive Reliance (0–1)", min_value=0.0, max_value=1.0, value=0.20, step=0.01, format="%.2f")
 
-        submitted_c = st.form_submit_button("CALCULATE CREDIT SCORE")
+        st.markdown(f"<div class='divider'></div><div class='form-group-label'>Financial Details</div>", unsafe_allow_html=True)
+        cf1, cf2, cf3 = st.columns(3)
+        with cf1:
+            loan = st.number_input("Loan Amount Requested (Rs)", min_value=5000, max_value=50000, value=15000, step=1000)
+        with cf2:
+            inc  = st.number_input("Monthly Income Estimate (Rs)", min_value=3000, max_value=40000, value=14000, step=500)
+        with cf3:
+            svr  = st.number_input("UPI Savings Ratio (0–1)", min_value=0.0, max_value=1.0, value=0.30, step=0.01, format="%.2f")
 
-    if submitted_c:
+        credit_submitted = st.form_submit_button("CALCULATE ELIGIBILITY")
+
+    if credit_submitted:
         mp_val = 1 if mp == "Yes" else 0
         vo_val = 1 if vo == "Yes" else 0
-        ofd=3; ffh=0; plat=0; tier=1
+        ofd    = 3; ffh = 0; plat = 0; tier = 1
         dti    = loan / (inc * 12 + 1e-6)
         iscore = wta * (1 - icv2) * phr2 * ten
         sample_c = np.array([[plat, tier, wta, icv2, phr2, rat, ten, mp_val, svr, ir,
@@ -1366,66 +1509,71 @@ elif page == "Credit Risk":
         score_col = (C["green"] if credit_score > 720 else C["gold"] if credit_score > 600
                      else C["orange"] if credit_score > 540 else C["red"])
         approved = credit_score > 600
+        verdict_text = "LOAN APPROVED" if approved else "LOAN REJECTED"
+
         st.markdown(f"""
-        <div style='background:{C["panel"]};border:2px solid {score_col};
-                    border-radius:12px;padding:28px;margin-top:20px;'>
-          <div style='display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;'>
-            <div style='text-align:center;'>
-              <div style='font-family:Share Tech Mono,monospace;font-size:0.75rem;
-                          color:#8B949E;letter-spacing:1px;margin-bottom:6px;'>GIG CREDIT SCORE</div>
-              <div style='font-family:Orbitron,monospace;font-size:3rem;font-weight:900;
-                          color:{score_col};text-shadow:0 0 30px {score_col}66;'>{credit_score}</div>
-              <div style='font-family:Orbitron,monospace;font-size:1.1rem;color:{score_col};
-                          margin-top:4px;'>GRADE: {grade}</div>
+        <div style='background:{C["panel"]};border:1px solid {C["border"]};
+                    border-top:2px solid {score_col};
+                    border-radius:4px;padding:28px 32px;margin-top:16px;'>
+          <div style='display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;flex-wrap:wrap;'>
+            <div>
+              <div style='font-family:IBM Plex Mono,monospace;font-size:0.62rem;
+                          color:{C["muted"]};letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;'>Gig Credit Score</div>
+              <div style='font-family:IBM Plex Mono,monospace;font-size:3rem;font-weight:600;
+                          color:{score_col};line-height:1;'>{credit_score}</div>
+              <div style='font-family:IBM Plex Mono,monospace;font-size:0.85rem;color:{score_col};
+                          margin-top:6px;letter-spacing:2px;'>GRADE: {grade}</div>
+              <div style='font-family:IBM Plex Mono,monospace;font-size:1rem;font-weight:600;
+                          color:{"#00C070" if approved else "#FF4757"};margin-top:12px;
+                          letter-spacing:1px;'>{verdict_text}</div>
             </div>
             <div>
-              <div style='font-family:Rajdhani,sans-serif;font-size:1.1rem;
-                          color:{C["white"]};margin-bottom:8px;'>
-                Default Probability: <span style='color:{score_col};font-weight:700;
-                                                  font-size:1.3rem;'>{def_prob:.4f}</span>
-              </div>
-              <div style='font-family:Orbitron,monospace;font-size:1.2rem;
-                          color:{"#00FF88" if approved else "#FF4757"};'>
-                {"LOAN APPROVED" if approved else "LOAN REJECTED"}
-              </div>
-              <div style='font-family:Share Tech Mono,monospace;font-size:0.78rem;
-                          color:#8B949E;margin-top:8px;'>
-                Max Eligible Amount: Rs. {int(inc * (1 - def_prob) * 3):,}
-              </div>
+              <div style='font-family:IBM Plex Mono,monospace;font-size:0.62rem;
+                          color:{C["muted"]};letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;'>Default Probability</div>
+              <div style='font-family:IBM Plex Mono,monospace;font-size:2rem;font-weight:600;
+                          color:{score_col};'>{def_prob:.4f}</div>
+              <div style='font-family:IBM Plex Sans,sans-serif;font-size:0.8rem;
+                          color:{C["muted"]};margin-top:6px;'>Neural Network (Adam Optimiser)</div>
+              <div style='font-family:IBM Plex Mono,monospace;font-size:0.8rem;
+                          color:{C["muted"]};margin-top:10px;'>Max Eligible: <span style='color:{C["white"]};'>Rs {int(inc*(1-def_prob)*3):,}</span></div>
             </div>
             <div>
-              <div style='font-family:Share Tech Mono,monospace;font-size:0.72rem;color:#8B949E;margin-bottom:6px;'>SCORE BREAKDOWN</div>
+              <div style='font-family:IBM Plex Mono,monospace;font-size:0.62rem;
+                          color:{C["muted"]};letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;'>Score Factors</div>
               {"".join([f"""
-              <div style='display:flex;justify-content:space-between;gap:24px;
-                          font-family:Rajdhani,sans-serif;font-size:0.85rem;
-                          color:{C["white"]};margin-bottom:3px;'>
-                <span style='color:#8B949E;'>{lbl}</span><span style='color:{col};'>{val}</span>
+              <div style='display:flex;justify-content:space-between;
+                          font-family:IBM Plex Mono,monospace;font-size:0.75rem;
+                          color:{C["muted"]};margin-bottom:8px;padding-bottom:8px;
+                          border-bottom:1px solid {C["border"]}44;'>
+                <span>{lbl}</span>
+                <span style='color:{col};'>{val}</span>
               </div>""" for lbl, val, col in [
-                  ("Income Stability", f"CV={icv2:.2f}", C["green"] if icv2 < 0.3 else C["red"]),
-                  ("Platform Tenure",  f"{ten} months",  C["green"] if ten > 12 else C["orange"]),
-                  ("App Rating",       f"{rat:.1f} / 5.0", C["green"] if rat > 4.2 else C["orange"]),
-                  ("Debt-to-Income",   f"{dti:.3f}",     C["green"] if dti < 0.3 else C["red"]),
+                  ("Income CV",       f"{icv2:.2f}", C["green"] if icv2 < 0.3 else C["red"]),
+                  ("Platform Tenure", f"{ten} mo",   C["green"] if ten > 12 else C["orange"]),
+                  ("App Rating",      f"{rat:.2f}",  C["green"] if rat > 4.2 else C["orange"]),
+                  ("Debt-to-Income",  f"{dti:.3f}",  C["green"] if dti < 0.3 else C["red"]),
               ]])}
             </div>
           </div>
-          <div class='prog-bar-wrap' style='margin-top:20px;height:14px;'>
+          <div class='prog-bar-wrap' style='margin-top:24px;height:6px;'>
             <div class='prog-bar-fill' style='width:{(credit_score-300)/5.5:.0f}%;
                  background:linear-gradient(90deg,{C["red"]},{C["gold"]},{C["green"]});'></div>
           </div>
           <div style='display:flex;justify-content:space-between;
-                      font-family:Share Tech Mono,monospace;font-size:0.68rem;color:#8B949E;'>
-            <span>300 (Poor)</span><span>550 (Fair)</span><span>700 (Good)</span><span>850 (Excellent)</span>
+                      font-family:IBM Plex Mono,monospace;font-size:0.62rem;color:{C["muted"]};margin-top:4px;'>
+            <span>300 — Poor</span><span>550 — Fair</span><span>700 — Good</span><span>850 — Excellent</span>
           </div>
         </div>
         """, unsafe_allow_html=True)
 
-# =================================================================
+
+# ═══════════════════════════════════════════════════════════════
 # PAGE: STATISTICAL ANALYSIS
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 elif page == "Statistical Analysis":
     st.markdown(f"""
-    <div class='hero-banner' style='padding:24px 32px;'>
-      <div class='hero-title' style='font-size:1.5rem;'>STATISTICAL ANALYSIS — CO3</div>
+    <div class='hero-banner' style='padding:22px 30px;'>
+      <div class='hero-title' style='font-size:1.2rem;'>STATISTICAL ANALYSIS — CO3</div>
       <div class='hero-sub'>MLE · Mixture Models · Confidence Intervals · Hypothesis Testing · Bayesian Posterior</div>
     </div>
     """, unsafe_allow_html=True)
@@ -1435,30 +1583,28 @@ elif page == "Statistical Analysis":
     with tab_fraud_stat:
         mu_f, sig_f = norm.fit(fraud_w["avg_trip_duration_min"])
         mu_n, sig_n = norm.fit(legit_w["avg_trip_duration_min"])
-        lam_f = 1.0 / fraud_w["avg_trip_duration_min"].mean()
-        lam_n = 1.0 / legit_w["avg_trip_duration_min"].mean()
 
         st.markdown(f"""
         <div class='metric-grid'>
           <div class='metric-card red'>
             <div class='metric-label'>Fraud Trip Duration (MLE)</div>
             <div class='metric-value'>{mu_f:.1f} min</div>
-            <div class='metric-delta'>sigma={sig_f:.2f} | GPS Spoofers</div>
+            <div class='metric-delta'>sigma = {sig_f:.2f} — GPS spoofers</div>
           </div>
           <div class='metric-card cyan'>
             <div class='metric-label'>Legit Trip Duration (MLE)</div>
             <div class='metric-value'>{mu_n:.1f} min</div>
-            <div class='metric-delta'>sigma={sig_n:.2f} | Normal delivery</div>
+            <div class='metric-delta'>sigma = {sig_n:.2f} — Normal delivery</div>
           </div>
           <div class='metric-card gold'>
             <div class='metric-label'>Speed Anomaly Ratio</div>
             <div class='metric-value'>{mu_n/mu_f:.1f}x</div>
-            <div class='metric-delta'>Physically impossible</div>
+            <div class='metric-delta'>Physically impossible ratio</div>
           </div>
           <div class='metric-card green'>
             <div class='metric-label'>Fraud GPS Jumps (mean)</div>
             <div class='metric-value'>{fraud_w["gps_jump_events"].mean():.2f}</div>
-            <div class='metric-delta'>vs {legit_w["gps_jump_events"].mean():.2f} legit</div>
+            <div class='metric-delta'>vs {legit_w["gps_jump_events"].mean():.2f} legitimate</div>
           </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1473,12 +1619,11 @@ elif page == "Statistical Analysis":
 
         st.markdown(f"""
         <div class='novelty-box'>
-          <h4>NOVEL: MIXTURE MODEL MLE — Income CV (GMM)</h4>
+          <h4>Novel: Mixture Model MLE — Income CV (Gaussian Mixture Model)</h4>
           <p>Component 1 (weight={weights_gmm[0]:.3f}): mu={means_gmm[0]:.4f}, sigma={covars_gmm[0]:.4f}</p>
           <p>Component 2 (weight={weights_gmm[1]:.3f}): mu={means_gmm[1]:.4f}, sigma={covars_gmm[1]:.4f}</p>
-          <p>P(low-CV component | fraud worker) = <span style='color:{C["red"]};font-weight:700;'>{fraud_post:.3f}</span>
-             vs P(low-CV | legit) = <span style='color:{C["green"]};font-weight:700;'>{legit_post:.3f}</span></p>
-          <p>Fraudsters cluster in low-CV component — they engineer artificially stable earnings</p>
+          <p>P(low-CV component | fraud worker) = <span>{fraud_post:.3f}</span> vs P(low-CV | legit) = <span>{legit_post:.3f}</span></p>
+          <p>Fraudsters cluster in the low-CV component — they engineer artificially stable earnings to avoid detection.</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1486,23 +1631,23 @@ elif page == "Statistical Analysis":
             "Welch t — Trip Duration":     ttest_ind(fraud_w["avg_trip_duration_min"], legit_w["avg_trip_duration_min"], equal_var=False),
             "KS — GPS Jump Events":        ks_2samp(fraud_w["gps_jump_events"], legit_w["gps_jump_events"]),
             "Mann-Whitney — Incentive HR": mannwhitneyu(fraud_w["incentive_hit_rate"], legit_w["incentive_hit_rate"], alternative="two-sided"),
-            "KS — Income CV":             ks_2samp(fraud_w["income_cv"], legit_w["income_cv"]),
-            "Welch t — Return Customer":  ttest_ind(fraud_w["return_customer_ratio"], legit_w["return_customer_ratio"], equal_var=False),
-            "KS — Concurrent Trips":      ks_2samp(fraud_w["concurrent_trips"], legit_w["concurrent_trips"]),
+            "KS — Income CV":              ks_2samp(fraud_w["income_cv"], legit_w["income_cv"]),
+            "Welch t — Return Customer":   ttest_ind(fraud_w["return_customer_ratio"], legit_w["return_customer_ratio"], equal_var=False),
+            "KS — Concurrent Trips":       ks_2samp(fraud_w["concurrent_trips"], legit_w["concurrent_trips"]),
         }
 
         st.markdown(f"""
         <div class='section-header' style='margin-top:20px;'>
           <span class='section-title'>Hypothesis Test Battery</span>
-          <span class='section-badge'>H0: No difference between fraud/legit</span>
+          <span class='section-badge'>H0: No difference between fraud and legitimate</span>
         </div>
         <table class='result-table'>
           <tr><th>Test</th><th>Statistic</th><th>p-value</th><th>Decision</th></tr>
           {''.join([f"""<tr>
             <td>{name}</td>
-            <td>{stat:.4f}</td>
-            <td style='color:{"#FF4757" if pval<0.05 else "#FFD700"};font-weight:700;'>{pval:.2e}</td>
-            <td>{"<span style='color:#00FF88;'>REJECT H0</span>" if pval<0.05 else "<span style='color:#FF8C00;'>Fail to Reject</span>"}</td>
+            <td style='font-family:IBM Plex Mono,monospace;'>{stat:.4f}</td>
+            <td style='font-family:IBM Plex Mono,monospace;color:{"#FF4757" if pval<0.05 else "#C9A84C"};font-weight:600;'>{pval:.2e}</td>
+            <td style='font-family:IBM Plex Mono,monospace;color:{"#00C070" if pval<0.05 else "#E07B39"};font-size:0.75rem;'>{"REJECT H0" if pval<0.05 else "FAIL TO REJECT"}</td>
           </tr>""" for name, (stat, pval) in tests.items()])}
         </table>
         """, unsafe_allow_html=True)
@@ -1513,7 +1658,7 @@ elif page == "Statistical Analysis":
         pci_f = stats.beta.interval(0.95, a_post, b_post)
 
         st.markdown(f"""
-        <div class='section-header' style='margin-top:20px;'>
+        <div class='section-header' style='margin-top:24px;'>
           <span class='section-title'>Bayesian Posterior — Fraud Rate</span>
         </div>
         <div class='metric-grid'>
@@ -1530,21 +1675,21 @@ elif page == "Statistical Analysis":
           <div class='metric-card gold'>
             <div class='metric-label'>95% Credible Interval</div>
             <div class='metric-value'>[{pci_f[0]*100:.2f}%, {pci_f[1]*100:.2f}%]</div>
-            <div class='metric-delta'>Bayesian CI</div>
+            <div class='metric-delta'>Bayesian credible interval</div>
           </div>
         </div>
         """, unsafe_allow_html=True)
 
         fig4, axes4 = plt.subplots(2, 3, figsize=(18, 10), facecolor=C["bg"])
-        fig4.suptitle("CO3 — Statistical Analysis: Gig Worker Fraud", fontsize=13, color=C["cyan"], fontweight="bold")
+        fig4.suptitle("CO3 — Statistical Analysis: Gig Worker Fraud", fontsize=12, color=C["white"], fontweight="bold", y=0.98)
 
         bins = np.linspace(0, 50, 50)
         axes4[0,0].hist(legit_w["avg_trip_duration_min"].clip(0,50), bins=bins, density=True, alpha=0.55, color=C["cyan"], label="Legit")
         axes4[0,0].hist(fraud_w["avg_trip_duration_min"].clip(0,25), bins=25, density=True, alpha=0.75, color=C["red"], label="Fraud")
         x_fit = np.linspace(0, 50, 200)
-        axes4[0,0].plot(x_fit, norm.pdf(x_fit, mu_n, sig_n), C["cyan"], lw=2, ls="--")
-        axes4[0,0].plot(x_fit, norm.pdf(x_fit, mu_f, sig_f), C["red"],  lw=2, ls="--")
-        axes4[0,0].set_title("MLE: Trip Duration Distribution\n[GPS Spoofers complete in <10 min]", color=C["gold"])
+        axes4[0,0].plot(x_fit, norm.pdf(x_fit, mu_n, sig_n), C["cyan"], lw=1.5, ls="--")
+        axes4[0,0].plot(x_fit, norm.pdf(x_fit, mu_f, sig_f), C["red"],  lw=1.5, ls="--")
+        axes4[0,0].set_title("MLE: Trip Duration Distribution\n[GPS Spoofers complete in <10 min]", color=C["muted"], fontsize=10)
         axes4[0,0].legend(); axes4[0,0].set_xlabel("Duration (min)")
 
         x_cv = np.linspace(0, 1, 300)
@@ -1552,52 +1697,52 @@ elif page == "Statistical Analysis":
         axes4[0,1].hist(fraud_w["income_cv"], bins=40, density=True, alpha=0.7, color=C["red"],  label="Fraud")
         w1,w2 = weights_gmm; m1,m2 = means_gmm; s1,s2 = covars_gmm
         mix = w1*norm.pdf(x_cv,m1,s1) + w2*norm.pdf(x_cv,m2,s2)
-        axes4[0,1].plot(x_cv, mix, color=C["gold"], lw=2.5, label="GMM mixture (NOVEL)")
-        axes4[0,1].set_title("NOVEL: Mixture MLE — Income CV", color=C["gold"]); axes4[0,1].legend()
+        axes4[0,1].plot(x_cv, mix, color=C["gold"], lw=2, label="GMM mixture")
+        axes4[0,1].set_title("Mixture MLE — Income CV\n(Novel feature)", color=C["muted"], fontsize=10); axes4[0,1].legend()
 
         feats_b = ["gps_jump_events","incentive_hit_rate","concurrent_trips","return_customer_ratio"]
-        labs_b  = ["GPS Jumps","Incentive Hit","Concurrent Trips","Return Customer"]
+        labs_b  = ["GPS Jumps","Incentive Hit","Concurrent\nTrips","Return\nCustomer"]
         mf_b = [fraud_w[f].mean() for f in feats_b]
         ml_b = [legit_w[f].mean() for f in feats_b]
         x_b = np.arange(4); wb = 0.35
         axes4[0,2].bar(x_b-wb/2, ml_b, wb, color=C["cyan"], alpha=0.8, label="Legit")
         axes4[0,2].bar(x_b+wb/2, mf_b, wb, color=C["red"],  alpha=0.8, label="Fraud")
         axes4[0,2].set_xticks(x_b); axes4[0,2].set_xticklabels(labs_b, fontsize=8)
-        axes4[0,2].set_title("Feature Mean Comparison", color=C["gold"]); axes4[0,2].legend()
+        axes4[0,2].set_title("Feature Mean Comparison", color=C["muted"], fontsize=10); axes4[0,2].legend()
 
         x_bay = np.linspace(max(0, pci_f[0]*0.5), pci_f[1]*1.5, 1000)
         py_bay = stats.beta.pdf(x_bay, a_post, b_post)
-        axes4[1,0].plot(x_bay, py_bay, color=C["cyan"], lw=2.5)
-        axes4[1,0].fill_between(x_bay, py_bay, alpha=0.18, color=C["cyan"])
-        axes4[1,0].axvline(pm_f, color=C["gold"], lw=2, ls="--", label=f"Posterior={pm_f:.4f}")
-        axes4[1,0].fill_betweenx([0,max(py_bay)], pci_f[0], pci_f[1], alpha=0.15, color=C["purple"], label="95% CI")
-        axes4[1,0].set_title("Bayesian Posterior — Fraud Rate", color=C["gold"]); axes4[1,0].legend()
+        axes4[1,0].plot(x_bay, py_bay, color=C["cyan"], lw=1.5)
+        axes4[1,0].fill_between(x_bay, py_bay, alpha=0.12, color=C["cyan"])
+        axes4[1,0].axvline(pm_f, color=C["gold"], lw=1.5, ls="--", label=f"Posterior={pm_f:.4f}")
+        axes4[1,0].fill_betweenx([0,max(py_bay)], pci_f[0], pci_f[1], alpha=0.12, color=C["purple"], label="95% CI")
+        axes4[1,0].set_title("Bayesian Posterior — Fraud Rate", color=C["muted"], fontsize=10); axes4[1,0].legend()
 
         key_feats_ci = ["gps_jump_events","incentive_hit_rate","concurrent_trips","return_customer_ratio"]
-        means_l = [legit_w[f].mean() for f in key_feats_ci]
+        means_l_ci = [legit_w[f].mean() for f in key_feats_ci]
         means_f_ci = [fraud_w[f].mean() for f in key_feats_ci]
         cis_l = [stats.t.interval(0.95, len(legit_w)-1, legit_w[f].mean(), stats.sem(legit_w[f])) for f in key_feats_ci]
         cis_f = [stats.t.interval(0.95, len(fraud_w)-1, fraud_w[f].mean(), stats.sem(fraud_w[f])) for f in key_feats_ci]
         x_ci = np.arange(len(key_feats_ci))
-        axes4[1,1].errorbar(x_ci-0.15, means_l, yerr=[[m-l for m,(l,u) in zip(means_l,cis_l)],[u-m for m,(l,u) in zip(means_l,cis_l)]],
-                            fmt="o", color=C["cyan"], lw=2, ms=8, label="Legit 95% CI")
+        axes4[1,1].errorbar(x_ci-0.15, means_l_ci, yerr=[[m-l for m,(l,u) in zip(means_l_ci,cis_l)],[u-m for m,(l,u) in zip(means_l_ci,cis_l)]],
+                            fmt="o", color=C["cyan"], lw=1.5, ms=7, label="Legit 95% CI")
         axes4[1,1].errorbar(x_ci+0.15, means_f_ci, yerr=[[m-l for m,(l,u) in zip(means_f_ci,cis_f)],[u-m for m,(l,u) in zip(means_f_ci,cis_f)]],
-                            fmt="s", color=C["red"],  lw=2, ms=8, label="Fraud 95% CI")
+                            fmt="s", color=C["red"],  lw=1.5, ms=7, label="Fraud 95% CI")
         axes4[1,1].set_xticks(x_ci); axes4[1,1].set_xticklabels(["GPS Jumps","Inc. Hit","Concurr.","Ret. Cust."], fontsize=8)
-        axes4[1,1].set_title("95% Confidence Intervals\nFraud vs Legit Features", color=C["gold"]); axes4[1,1].legend()
+        axes4[1,1].set_title("95% Confidence Intervals\nFraud vs Legit Features", color=C["muted"], fontsize=10); axes4[1,1].legend()
 
-        sample_vis = fraud_df.sample(600, random_state=7)[["avg_trip_duration_min","gps_jump_events","FraudLabel"]]
+        sample_vis = fraud_df.sample(600, random_state=7)
         axes4[1,2].scatter(sample_vis[sample_vis["FraudLabel"]==0]["avg_trip_duration_min"],
                            sample_vis[sample_vis["FraudLabel"]==0]["gps_jump_events"],
                            c=C["cyan"], alpha=0.4, s=8, label="Legit")
         axes4[1,2].scatter(sample_vis[sample_vis["FraudLabel"]==1]["avg_trip_duration_min"],
                            sample_vis[sample_vis["FraudLabel"]==1]["gps_jump_events"],
                            c=C["red"],  alpha=0.6, s=12, label="Fraud")
-        axes4[1,2].set_title("Feature Space: Duration vs GPS Jumps\n(Clear fraud cluster visible)", color=C["gold"])
+        axes4[1,2].set_title("Feature Space: Duration vs GPS Jumps\n(Clear fraud cluster at bottom-right)", color=C["muted"], fontsize=10)
         axes4[1,2].set_xlabel("Avg Trip Duration (min)"); axes4[1,2].set_ylabel("GPS Jump Events")
         axes4[1,2].legend()
 
-        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.tight_layout(rect=[0, 0, 1, 0.97])
         st.pyplot(fig4, use_container_width=True)
         plt.close()
 
@@ -1612,13 +1757,13 @@ elif page == "Statistical Analysis":
         st.markdown(f"""
         <div class='metric-grid'>
           <div class='metric-card green'>
-            <div class='metric-label'>Good Worker Income (Log-Normal MLE)</div>
-            <div class='metric-value'>Rs. {np.exp(mu_g)-1:,.0f}</div>
+            <div class='metric-label'>Non-Default Income (Log-Normal MLE)</div>
+            <div class='metric-value'>Rs {np.exp(mu_g)-1:,.0f}</div>
             <div class='metric-delta'>Median monthly income</div>
           </div>
           <div class='metric-card red'>
             <div class='metric-label'>Defaulter Income (Log-Normal MLE)</div>
-            <div class='metric-value'>Rs. {np.exp(mu_d)-1:,.0f}</div>
+            <div class='metric-value'>Rs {np.exp(mu_d)-1:,.0f}</div>
             <div class='metric-delta'>Median monthly income</div>
           </div>
           <div class='metric-card purple'>
@@ -1646,55 +1791,56 @@ elif page == "Statistical Analysis":
         st.markdown(f"""
         <div class='section-header'>
           <span class='section-title'>Credit Hypothesis Tests</span>
-          <span class='section-badge'>H0: No difference between defaulter/non-defaulter</span>
+          <span class='section-badge'>H0: No difference between defaulter and non-defaulter</span>
         </div>
         <table class='result-table'>
           <tr><th>Test</th><th>Statistic</th><th>p-value</th><th>Decision</th></tr>
           {''.join([f"""<tr>
-            <td>{name}</td><td>{stat:.4f}</td>
-            <td style='color:{"#FF4757" if pval<0.05 else "#FFD700"};font-weight:700;'>{pval:.2e}</td>
-            <td>{"<span style='color:#00FF88;'>REJECT H0</span>" if pval<0.05 else "<span style='color:#FF8C00;'>Fail to Reject</span>"}</td>
+            <td>{name}</td>
+            <td style='font-family:IBM Plex Mono,monospace;'>{stat:.4f}</td>
+            <td style='font-family:IBM Plex Mono,monospace;color:{"#FF4757" if pval<0.05 else "#C9A84C"};font-weight:600;'>{pval:.2e}</td>
+            <td style='font-family:IBM Plex Mono,monospace;color:{"#00C070" if pval<0.05 else "#E07B39"};font-size:0.75rem;'>{"REJECT H0" if pval<0.05 else "FAIL TO REJECT"}</td>
           </tr>""" for name, (stat, pval) in credit_tests.items()])}
         </table>
         """, unsafe_allow_html=True)
 
         fig5, axes5 = plt.subplots(2, 3, figsize=(18, 10), facecolor=C["bg"])
-        fig5.suptitle("CO3 — Statistical Analysis: Credit Risk", fontsize=13, color=C["cyan"], fontweight="bold")
+        fig5.suptitle("CO3 — Statistical Analysis: Credit Risk", fontsize=12, color=C["white"], fontweight="bold", y=0.98)
 
         axes5[0,0].hist(good_c["income_cv"], bins=40, density=True, alpha=0.6, color=C["green"], label="Non-defaulter")
         axes5[0,0].hist(default_c["income_cv"], bins=40, density=True, alpha=0.7, color=C["red"],   label="Defaulter")
-        axes5[0,0].set_title("NOVEL: Income CV — Primary Credit Feature\n[Low CV = stable income = creditworthy]", color=C["gold"]); axes5[0,0].legend()
+        axes5[0,0].set_title("Income CV — Primary Credit Feature\n[Low CV = stable income = creditworthy]", color=C["muted"], fontsize=10); axes5[0,0].legend()
 
         bp = axes5[0,1].boxplot([good_c["weekly_trips_avg"], default_c["weekly_trips_avg"]],
-                                labels=["Good","Default"], patch_artist=True,
-                                medianprops=dict(color=C["gold"], linewidth=2.5))
-        bp["boxes"][0].set_facecolor(C["green"]); bp["boxes"][0].set_alpha(0.5)
-        bp["boxes"][1].set_facecolor(C["red"]);   bp["boxes"][1].set_alpha(0.5)
-        axes5[0,1].set_title("Weekly Trips Distribution", color=C["gold"])
+                                labels=["Non-Default","Default"], patch_artist=True,
+                                medianprops=dict(color=C["gold"], linewidth=2))
+        bp["boxes"][0].set_facecolor(C["green"]); bp["boxes"][0].set_alpha(0.4)
+        bp["boxes"][1].set_facecolor(C["red"]);   bp["boxes"][1].set_alpha(0.4)
+        axes5[0,1].set_title("Weekly Trips Distribution", color=C["muted"], fontsize=10)
 
         plat_labels = ["Zomato","Ola","Swiggy","Rapido"]; cols_p = [C["cyan"],C["orange"],C["red"],C["purple"]]
         for pi,(pl,col) in enumerate(zip(plat_labels,cols_p)):
             sub = credit_df[credit_df["platform"]==pi]
             if len(sub)>0:
-                axes5[0,2].bar(pi, sub["Default"].mean()*100, color=col, alpha=0.85, edgecolor="white", lw=0.5)
+                axes5[0,2].bar(pi, sub["Default"].mean()*100, color=col, alpha=0.8, edgecolor=C["border"], lw=0.5)
                 axes5[0,2].text(pi, sub["Default"].mean()*100+0.3, f"{sub['Default'].mean()*100:.1f}%",
-                                ha="center", color="white", fontsize=9, fontweight="bold")
-        axes5[0,2].set_title("Default Rate by Platform", color=C["gold"])
+                                ha="center", color=C["white"], fontsize=9, fontweight="bold")
+        axes5[0,2].set_title("Default Rate by Platform", color=C["muted"], fontsize=10)
         axes5[0,2].set_xticks(range(4)); axes5[0,2].set_xticklabels(plat_labels)
 
         x_b2 = np.linspace(max(0,pci_c[0]*0.5), pci_c[1]*1.5, 1000)
         py2 = stats.beta.pdf(x_b2, a_po_c, b_po_c)
-        axes5[1,0].plot(x_b2, py2, color=C["orange"], lw=2.5)
-        axes5[1,0].fill_between(x_b2, py2, alpha=0.18, color=C["orange"])
-        axes5[1,0].axvline(pm_c, color=C["gold"], lw=2, ls="--", label=f"Posterior={pm_c:.4f}")
-        axes5[1,0].fill_betweenx([0,max(py2)], pci_c[0], pci_c[1], alpha=0.15, color=C["purple"], label="95% CI")
-        axes5[1,0].set_title("Bayesian Posterior — Default Rate\nBeta(3,12) RBI-informed prior", color=C["gold"]); axes5[1,0].legend()
+        axes5[1,0].plot(x_b2, py2, color=C["orange"], lw=1.5)
+        axes5[1,0].fill_between(x_b2, py2, alpha=0.12, color=C["orange"])
+        axes5[1,0].axvline(pm_c, color=C["gold"], lw=1.5, ls="--", label=f"Posterior={pm_c:.4f}")
+        axes5[1,0].fill_betweenx([0,max(py2)], pci_c[0], pci_c[1], alpha=0.12, color=C["purple"], label="95% CI")
+        axes5[1,0].set_title("Bayesian Posterior — Default Rate\nBeta(3,12) RBI-informed prior", color=C["muted"], fontsize=10); axes5[1,0].legend()
 
         for grp, col, lbl in [(good_c, C["green"],"Non-defaulter"), (default_c, C["red"],"Defaulter")]:
             axes5[1,1].scatter(grp["platform_tenure_mo"].sample(200, random_state=1),
                                grp["income_cv"].sample(200, random_state=1),
                                c=col, alpha=0.5, s=10, label=lbl)
-        axes5[1,1].set_title("Tenure vs Income CV\n[Good workers: high tenure, low CV]", color=C["gold"])
+        axes5[1,1].set_title("Tenure vs Income CV", color=C["muted"], fontsize=10)
         axes5[1,1].set_xlabel("Platform Tenure (mo)"); axes5[1,1].set_ylabel("Income CV"); axes5[1,1].legend()
 
         kf_c = ["weekly_trips_avg","income_cv","app_rating","upi_savings_ratio","platform_tenure_mo"]
@@ -1704,187 +1850,215 @@ elif page == "Statistical Analysis":
         means_g+=[means_g[0]]; means_d+=[means_d[0]]; angles+=[angles[0]]
         ax_r = axes5[1,2]
         ax_r.set_facecolor(C["panel"])
-        ax_r.plot(angles, means_g, color=C["green"], lw=2, label="Non-defaulter")
-        ax_r.fill(angles, means_g, color=C["green"], alpha=0.15)
-        ax_r.plot(angles, means_d, color=C["red"],   lw=2, label="Defaulter")
-        ax_r.fill(angles, means_d, color=C["red"],   alpha=0.15)
+        ax_r.plot(angles, means_g, color=C["green"], lw=1.5, label="Non-defaulter")
+        ax_r.fill(angles, means_g, color=C["green"], alpha=0.12)
+        ax_r.plot(angles, means_d, color=C["red"],   lw=1.5, label="Defaulter")
+        ax_r.fill(angles, means_d, color=C["red"],   alpha=0.12)
         ax_r.set_xticks(angles[:-1]); ax_r.set_xticklabels(["Trips","Income CV","Rating","Savings","Tenure"], fontsize=8)
-        ax_r.set_title("Feature Profile: Good vs Default", color=C["gold"]); ax_r.legend()
+        ax_r.set_title("Feature Profile: Non-Default vs Default", color=C["muted"], fontsize=10); ax_r.legend()
         ax_r.set_ylim(0, 1.2)
 
-        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.tight_layout(rect=[0, 0, 1, 0.97])
         st.pyplot(fig5, use_container_width=True)
         plt.close()
 
-# =================================================================
+
+# ═══════════════════════════════════════════════════════════════
 # PAGE: QUANTUM SCORING
-# =================================================================
+# ═══════════════════════════════════════════════════════════════
 elif page == "Quantum Scoring":
     st.markdown(f"""
-    <div class='hero-banner' style='padding:24px 32px;'>
-      <div class='hero-title' style='font-size:1.5rem;'>QUANTUM CREDIT SCORING — CO4</div>
+    <div class='hero-banner' style='padding:22px 30px;'>
+      <div class='hero-title' style='font-size:1.2rem;'>QUANTUM CREDIT SCORING — CO4</div>
       <div class='hero-sub'>ZZ-FeatureMap Kernel SVM · Variational Quantum Classifier · Parameter Shift Rule</div>
     </div>
     """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class='novelty-box'>
-      <h4>WHY QUANTUM FOR CREDIT RISK (NOVEL ARGUMENT)</h4>
-      <p>Micro-lenders have small datasets per region (50–200 workers) — classical SVMs underfit</p>
-      <p>Quantum kernels exploit exponentially large Hilbert space: K(x,y) = |phi(x)|phi(y)|^2</p>
-      <p>ZZ-FeatureMap encodes gig behavioral time-series into quantum entangled states</p>
-      <p>Parameter Shift Rule: dL/dtheta = [L(theta+pi/2) - L(theta-pi/2)] / 2 — works on real quantum hardware</p>
+      <h4>Why Quantum for Credit Risk — Novel Argument</h4>
+      <p>Micro-lenders operate on <span>small regional datasets</span> (50–200 workers) — classical SVMs underfit in this regime.</p>
+      <p>Quantum kernels exploit exponentially large Hilbert space: K(x,y) = |&lt;phi(x)|phi(y)&gt;|^2.</p>
+      <p>ZZ-FeatureMap encodes gig behavioural time-series into quantum entangled states across 4 qubits.</p>
+      <p>Parameter Shift Rule: dL/dTheta = [L(theta+pi/2) - L(theta-pi/2)] / 2 — fully compatible with real quantum hardware.</p>
     </div>
     """, unsafe_allow_html=True)
 
-    col_left, col_right = st.columns([2, 1])
-    with col_right:
-        st.markdown(f"<div class='field-group-label'>Quantum Config</div>", unsafe_allow_html=True)
-        n_qsvm_workers = st.number_input("Quantum Train Set Size", min_value=60, max_value=300, value=180, step=20)
+    col_params, col_info = st.columns([3, 1])
+    with col_params:
+        st.markdown(f"<div class='form-group-label'>Quantum Experiment Parameters</div>", unsafe_allow_html=True)
+        qp1, qp2 = st.columns(2)
+        with qp1:
+            n_qsvm_workers = st.number_input("Quantum Train Set Size", min_value=60, max_value=300, value=180, step=20)
+        with qp2:
+            st.markdown(f"<div style='padding-top:28px;font-family:IBM Plex Mono,monospace;font-size:0.75rem;color:{C[\"muted\"]};'>Test size fixed at 120 samples for compute efficiency</div>", unsafe_allow_html=True)
+    with col_info:
         st.markdown(f"""
-        <div class='info-box'>
-          4 qubits · ZZ-FeatureMap<br>
-          Kernel: K(x,y) = |phi(x)|phi(y)|^2<br>
-          PCA input — 4 principal components<br>
-          Simulated via numpy linear algebra
+        <div class='info-box' style='margin-top:4px;'>
+          Qubits: 4<br>
+          Kernel: ZZ-FeatureMap<br>
+          Input: PCA (6 components -> 4)<br>
+          Simulation: numpy linear algebra
         </div>
         """, unsafe_allow_html=True)
 
-    with st.spinner("Computing quantum kernel matrix (ZZ-FeatureMap on 4 qubits)..."):
-        K_tr, y_qtr, qsvm_prob, qsvm_pred, y_qte, qsvm_auc, qsvm_f1 = run_quantum_svm(
-            X_pca_tr, y_tr_c, X_pca_te, y_te_c, n_qsvm_workers)
+    run_quantum = st.button("RUN QUANTUM KERNEL SVM")
 
-    st.markdown(f"""
-    <div class='metric-grid'>
-      <div class='metric-card purple'>
-        <div class='metric-label'>Quantum Kernel SVM — AUC</div>
-        <div class='metric-value'>{qsvm_auc:.4f}</div>
-        <div class='metric-delta'>ZZ-FeatureMap · 4 qubits</div>
-      </div>
-      <div class='metric-card cyan'>
-        <div class='metric-label'>Q-SVM F1 Score</div>
-        <div class='metric-value'>{qsvm_f1:.4f}</div>
-        <div class='metric-delta'>Small dataset: {len(y_qtr)} workers</div>
-      </div>
-      <div class='metric-card gold'>
-        <div class='metric-label'>Kernel Matrix</div>
-        <div class='metric-value'>{K_tr.shape[0]}x{K_tr.shape[1]}</div>
-        <div class='metric-delta'>Diagonal mean = {np.diag(K_tr).mean():.4f}</div>
-      </div>
-      <div class='metric-card green'>
-        <div class='metric-label'>PCA Variance Retained</div>
-        <div class='metric-value'>{pca_c.explained_variance_ratio_.sum()*100:.1f}%</div>
-        <div class='metric-delta'>6 components — 4 qubits</div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+    if run_quantum or "qsvm_done" in st.session_state:
+        with st.spinner("Computing quantum kernel matrix — ZZ-FeatureMap on 4 qubits..."):
+            K_tr, y_qtr, qsvm_prob, qsvm_pred, y_qte, qsvm_auc, qsvm_f1 = run_quantum_svm(
+                X_pca_tr, y_tr_c, X_pca_te, y_te_c, n_qsvm_workers)
+        st.session_state["qsvm_done"] = True
 
-    fig6, axes6 = plt.subplots(2, 3, figsize=(18, 10), facecolor=C["bg"])
-    fig6.suptitle("CO4 — Quantum Computing for Gig Worker Credit Risk", fontsize=13, color=C["cyan"], fontweight="bold")
+        st.markdown(f"""
+        <div class='metric-grid'>
+          <div class='metric-card purple'>
+            <div class='metric-label'>Quantum Kernel SVM — AUC</div>
+            <div class='metric-value'>{qsvm_auc:.4f}</div>
+            <div class='metric-delta'>ZZ-FeatureMap · 4 qubits</div>
+          </div>
+          <div class='metric-card cyan'>
+            <div class='metric-label'>Q-SVM F1 Score</div>
+            <div class='metric-value'>{qsvm_f1:.4f}</div>
+            <div class='metric-delta'>Train set: {len(y_qtr)} workers</div>
+          </div>
+          <div class='metric-card gold'>
+            <div class='metric-label'>Kernel Matrix Dimension</div>
+            <div class='metric-value'>{K_tr.shape[0]}x{K_tr.shape[1]}</div>
+            <div class='metric-delta'>Diagonal mean = {np.diag(K_tr).mean():.4f}</div>
+          </div>
+          <div class='metric-card green'>
+            <div class='metric-label'>PCA Variance Retained</div>
+            <div class='metric-value'>{pca_c.explained_variance_ratio_.sum()*100:.1f}%</div>
+            <div class='metric-delta'>6 components -> 4 qubits</div>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    ax = axes6[0,0]
-    ax.set_xlim(0, 12); ax.set_ylim(0.3, 3.7); ax.set_facecolor("#0A0A1A")
-    ax.set_title("ZZ-FeatureMap Circuit (3 qubits shown)\nEncodes gig worker behavior into quantum state", color=C["gold"])
-    qubit_y = [3, 2, 1]
-    ql = ["income_cv", "trip_avg", "app_rating"]
-    for q, (y_q, lab) in enumerate(zip(qubit_y, ql)):
-        ax.axhline(y=y_q, color="white", lw=0.7, alpha=0.4)
-        ax.text(-0.2, y_q, "|0>", color="white", va="center", fontsize=9, ha="right")
-        ax.text(12.1, y_q, f"[{lab}]", color=C["teal"], va="center", fontsize=7)
-    gates = [(1.0,"H",C["cyan"],None),(2.5,"Ry(x)",C["purple"],0),(2.5,"Ry(x)",C["purple"],1),
-             (2.5,"Ry(x)",C["purple"],2),(4.5,"Ry(t)",C["orange"],0),(4.5,"Ry(t)",C["orange"],1),
-             (4.5,"Ry(t)",C["orange"],2),(6.0,"Rz(p)",C["red"],0),(6.0,"Rz(p)",C["red"],1),
-             (6.0,"Rz(p)",C["red"],2),(9.5,"<Z>",C["green"],0)]
-    for xc, lbl, col, q in gates:
-        qs = [q] if q is not None else [0,1,2]
-        for qi_ in qs:
-            ax.add_patch(plt.Rectangle((xc-0.5, qubit_y[qi_]-0.22), 1.0, 0.44, facecolor=col, alpha=0.85, zorder=2))
-            ax.text(xc, qubit_y[qi_], lbl, color="white", ha="center", va="center", fontsize=7, zorder=3)
-    for ctrl,tgt in [(0,1),(1,2)]:
-        ax.plot([7.8,7.8],[qubit_y[ctrl],qubit_y[tgt]], color=C["gold"], lw=2)
-        ax.plot(7.8, qubit_y[ctrl], "o", color=C["gold"], ms=8, zorder=3)
-        ax.text(7.8, qubit_y[tgt], "X", color=C["gold"], ha="center", va="center", fontsize=12, zorder=3, fontweight="bold")
-    ax.set_xticks([]); ax.set_yticks([])
+        fig6, axes6 = plt.subplots(2, 3, figsize=(18, 10), facecolor=C["bg"])
+        fig6.suptitle("CO4 — Quantum Computing for Gig Worker Credit Risk", fontsize=12, color=C["white"], fontweight="bold", y=0.98)
 
-    k_vis = min(60, len(y_qtr))
-    im = axes6[0,1].imshow(K_tr[:k_vis,:k_vis], cmap="plasma", aspect="auto", vmin=0, vmax=1)
-    plt.colorbar(im, ax=axes6[0,1], shrink=0.85)
-    axes6[0,1].set_title(f"Quantum Kernel Matrix ({k_vis}x{k_vis})\nK(x,y) = |<phi(x)|phi(y)>|^2", color=C["gold"])
+        # Circuit diagram
+        ax = axes6[0,0]
+        ax.set_xlim(0, 12); ax.set_ylim(0.3, 3.7); ax.set_facecolor(C["bg"])
+        ax.set_title("ZZ-FeatureMap Circuit (3 qubits shown)\nEncodes gig worker behaviour", color=C["muted"], fontsize=10)
+        qubit_y = [3, 2, 1]
+        ql = ["income_cv", "trip_avg", "app_rating"]
+        for q, (y_q, lab) in enumerate(zip(qubit_y, ql)):
+            ax.axhline(y=y_q, color=C["border"], lw=0.8, alpha=0.7, zorder=0)
+            ax.text(-0.2, y_q, "|0>", color=C["muted"], va="center", fontsize=9, ha="right")
+            ax.text(12.1, y_q, f"[{lab}]", color=C["teal"], va="center", fontsize=7)
+        gates = [
+            (1.0,"H",C["cyan"],None),(2.5,"Ry(x)",C["purple"],0),(2.5,"Ry(x)",C["purple"],1),
+            (2.5,"Ry(x)",C["purple"],2),(4.5,"Ry(t)",C["orange"],0),(4.5,"Ry(t)",C["orange"],1),
+            (4.5,"Ry(t)",C["orange"],2),(6.0,"Rz(p)",C["red"],0),(6.0,"Rz(p)",C["red"],1),
+            (6.0,"Rz(p)",C["red"],2),(9.5,"<Z>",C["green"],0)
+        ]
+        for xc, lbl, col, q in gates:
+            qs = [q] if q is not None else [0,1,2]
+            for qi_ in qs:
+                ax.add_patch(plt.Rectangle((xc-0.45, qubit_y[qi_]-0.2), 0.9, 0.4, facecolor=col, alpha=0.8, zorder=2))
+                ax.text(xc, qubit_y[qi_], lbl, color="white", ha="center", va="center", fontsize=6.5, zorder=3, fontfamily="monospace")
+        for ctrl,tgt in [(0,1),(1,2)]:
+            ax.plot([7.8,7.8],[qubit_y[ctrl],qubit_y[tgt]], color=C["gold"], lw=1.5)
+            ax.plot(7.8, qubit_y[ctrl], "o", color=C["gold"], ms=7, zorder=3)
+            ax.text(7.8, qubit_y[tgt], "+", color=C["gold"], ha="center", va="center", fontsize=14, zorder=3)
+        ax.set_xticks([]); ax.set_yticks([])
+        for sp in ax.spines.values(): sp.set_visible(False)
+        ax.grid(False)
 
-    fp_q, tp_q, _ = roc_curve(y_qte, qsvm_prob)
-    axes6[0,2].plot(fp_q, tp_q, color=C["purple"], lw=2.5, label=f"Q-SVM (AUC={qsvm_auc:.3f})")
-    axes6[0,2].plot([0,1],[0,1],"w--",lw=1)
-    axes6[0,2].set_title("Q-SVM ROC Curve", color=C["gold"]); axes6[0,2].legend()
+        k_vis = min(60, len(y_qtr))
+        im = axes6[0,1].imshow(K_tr[:k_vis,:k_vis], cmap="plasma", aspect="auto", vmin=0, vmax=1)
+        plt.colorbar(im, ax=axes6[0,1], shrink=0.85)
+        axes6[0,1].set_title(f"Quantum Kernel Matrix ({k_vis}x{k_vis})\nK(x,y) = |<phi(x)|phi(y)>|^2", color=C["muted"], fontsize=10)
+        axes6[0,1].grid(False)
 
-    diag_vals = np.diag(K_tr)
-    off_diag  = K_tr[~np.eye(len(K_tr), dtype=bool)]
-    axes6[1,0].hist(off_diag, bins=40, density=True, alpha=0.7, color=C["cyan"], label="Off-diagonal K(x,y)")
-    axes6[1,0].axvline(diag_vals.mean(), color=C["gold"], lw=2, ls="--", label=f"Diag mean={diag_vals.mean():.3f}")
-    axes6[1,0].set_title("Quantum Kernel Distribution\n(Entanglement structure)", color=C["gold"]); axes6[1,0].legend()
+        fp_q, tp_q, _ = roc_curve(y_qte, qsvm_prob)
+        axes6[0,2].plot(fp_q, tp_q, color=C["purple"], lw=1.5, label=f"Q-SVM (AUC={qsvm_auc:.3f})")
+        axes6[0,2].plot([0,1],[0,1], color=C["border"], lw=0.8, ls="--")
+        axes6[0,2].set_title("Q-SVM ROC Curve", color=C["muted"], fontsize=10); axes6[0,2].legend()
 
-    ev = pca_c.explained_variance_ratio_ * 100
-    axes6[1,1].bar(range(1, len(ev)+1), ev, color=C["purple"], alpha=0.8, edgecolor="white", lw=0.5)
-    axes6[1,1].axvline(4.5, color=C["gold"], lw=2, ls="--", label="4-qubit cutoff")
-    axes6[1,1].set_title("PCA Explained Variance\n(4 components used for quantum encoding)", color=C["gold"])
-    axes6[1,1].set_xlabel("Principal Component"); axes6[1,1].set_ylabel("Variance (%)"); axes6[1,1].legend()
+        diag_vals = np.diag(K_tr)
+        off_diag  = K_tr[~np.eye(len(K_tr), dtype=bool)]
+        axes6[1,0].hist(off_diag, bins=40, density=True, alpha=0.7, color=C["cyan"], label="Off-diagonal K(x,y)")
+        axes6[1,0].axvline(diag_vals.mean(), color=C["gold"], lw=1.5, ls="--", label=f"Diag mean={diag_vals.mean():.3f}")
+        axes6[1,0].set_title("Quantum Kernel Distribution\n(Entanglement structure)", color=C["muted"], fontsize=10); axes6[1,0].legend()
 
-    axes6[1,2].hist(qsvm_prob[y_qte==0], bins=20, alpha=0.6, color=C["green"], label="Non-default", density=True)
-    axes6[1,2].hist(qsvm_prob[y_qte==1], bins=20, alpha=0.7, color=C["red"],   label="Default",     density=True)
-    axes6[1,2].axvline(0.5, color=C["gold"], lw=2, ls="--", label="Decision boundary")
-    axes6[1,2].set_title("Q-SVM Probability Separation", color=C["gold"]); axes6[1,2].legend()
+        ev = pca_c.explained_variance_ratio_ * 100
+        axes6[1,1].bar(range(1, len(ev)+1), ev, color=C["purple"], alpha=0.8, edgecolor=C["border"], lw=0.5)
+        axes6[1,1].axvline(4.5, color=C["gold"], lw=1.5, ls="--", label="4-qubit cutoff")
+        axes6[1,1].set_title("PCA Explained Variance\n(4 components -> quantum encoding)", color=C["muted"], fontsize=10)
+        axes6[1,1].set_xlabel("Principal Component"); axes6[1,1].set_ylabel("Variance (%)"); axes6[1,1].legend()
 
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
-    st.pyplot(fig6, use_container_width=True)
-    plt.close()
+        axes6[1,2].hist(qsvm_prob[y_qte==0], bins=20, alpha=0.6, color=C["green"], label="Non-default", density=True)
+        axes6[1,2].hist(qsvm_prob[y_qte==1], bins=20, alpha=0.7, color=C["red"],   label="Default",     density=True)
+        axes6[1,2].axvline(0.5, color=C["gold"], lw=1.5, ls="--", label="Decision boundary")
+        axes6[1,2].set_title("Q-SVM Probability Separation", color=C["muted"], fontsize=10); axes6[1,2].legend()
 
-    # Final Leaderboard
-    st.markdown(f"""
-    <div class='section-header' style='margin-top:28px;'>
-      <span class='section-title'>All-Model Leaderboard — CO1 to CO4</span>
-      <span class='section-badge'>FINAL SUMMARY</span>
-    </div>
-    """, unsafe_allow_html=True)
+        plt.tight_layout(rect=[0, 0, 1, 0.97])
+        st.pyplot(fig6, use_container_width=True)
+        plt.close()
 
-    with st.spinner("Computing all model scores for leaderboard..."):
-        w_pgd2, _, _, auc_pgd2, f1_pgd2, _ = run_proximal_gd(X_tr_fb, y_tr_f, X_te_fb, y_te_f, feat_cols_f)
-        z_ad2,  _, _, _, auc_ad2, f1_ad2, _ = run_admm(X_tr_fb, y_tr_f, X_te_fb, y_te_f)
-        w_alm2, _, _, auc_alm2, f1_alm2    = run_alm(X_tr_fb, y_tr_f, X_te_fb, y_te_f, platform_tr)
-        nn_f2 = run_neural_networks(X_tr_fs, y_tr_f, X_te_fs, y_te_f)
-        nn_c2 = run_neural_networks(X_tr_cs, y_tr_c, X_te_cs, y_te_c)
-        best_f2_name = max(nn_f2, key=lambda k: nn_f2[k]["auc"])
-        best_c2_name = max(nn_c2, key=lambda k: nn_c2[k]["auc"])
+        # ── Final Leaderboard ──────────────────────────────────────
+        st.markdown(f"""
+        <div class='section-header' style='margin-top:28px;'>
+          <span class='section-title'>All-Model Leaderboard — CO1 through CO4</span>
+          <span class='section-badge'>Final Summary</span>
+        </div>
+        """, unsafe_allow_html=True)
 
-    leaderboard = [
-        ("CO1", "Proximal GD",           "Fraud",         f"{auc_pgd2:.4f}", f"{f1_pgd2:.4f}", "fraud",  "L1 sparsity selects platform-native fraud features"),
-        ("CO1", "Fairness-ALM",          "Fraud (Fair)",  f"{auc_alm2:.4f}", f"{f1_alm2:.4f}", "fraud",  "NOVEL: FPR(Ola) <= FPR(Zomato) + epsilon"),
-        ("CO1", "ADMM",                  "Fraud (Dist.)", f"{auc_ad2:.4f}",  f"{f1_ad2:.4f}",  "fraud",  "Distributed — no raw data sharing between platforms"),
-        ("CO2", f"NN ({best_f2_name})",  "Fraud",         f"{nn_f2[best_f2_name]['auc']:.4f}", f"{nn_f2[best_f2_name]['f1']:.4f}", "fraud",  "Nonlinear GPS x Incentive x Rating signals"),
-        ("CO2", f"NN ({best_c2_name})",  "Credit",        f"{nn_c2[best_c2_name]['auc']:.4f}", f"{nn_c2[best_c2_name]['f1']:.4f}", "credit", "Platform-native credit — no CIBIL required"),
-        ("CO4", "Quantum SVM",           "Credit",        f"{qsvm_auc:.4f}", f"{qsvm_f1:.4f}", "credit", "Quantum kernel advantage for small micro-lender data"),
-    ]
+        with st.spinner("Computing all model scores for leaderboard..."):
+            w_pgd2, _, _, auc_pgd2, f1_pgd2, _ = run_proximal_gd(X_tr_fb, y_tr_f, X_te_fb, y_te_f, feat_cols_f)
+            z_ad2,  _, _, _, auc_ad2, f1_ad2, _ = run_admm(X_tr_fb, y_tr_f, X_te_fb, y_te_f)
+            w_alm2, _, _, auc_alm2, f1_alm2    = run_alm(X_tr_fb, y_tr_f, X_te_fb, y_te_f, platform_tr)
+            nn_f2 = run_neural_networks(X_tr_fs, y_tr_f, X_te_fs, y_te_f)
+            nn_c2 = run_neural_networks(X_tr_cs, y_tr_c, X_te_cs, y_te_c)
+            best_f2 = max(nn_f2, key=lambda k: nn_f2[k]["auc"])
+            best_c2 = max(nn_c2, key=lambda k: nn_c2[k]["auc"])
 
-    st.markdown(f"""
-    <table class='result-table'>
-      <tr><th>CO</th><th>Model</th><th>Task</th><th>AUC</th><th>F1</th><th>Novelty</th></tr>
-      {''.join([f"""<tr>
-        <td><span style='color:{C["cyan"]};font-weight:700;font-family:Orbitron,monospace;
-                         font-size:0.75rem;'>{co}</span></td>
-        <td><b>{model}</b></td>
-        <td><span class='badge-{"fraud" if task_type=="fraud" else "credit"}'>{task}</span></td>
-        <td class='{"auc-high" if float(auc)>0.9 else "auc-mid" if float(auc)>0.75 else "auc-low"}'>{auc}</td>
-        <td>{f1}</td>
-        <td style='font-size:0.8rem;color:#8B949E;'>{nov}</td>
-      </tr>""" for co,model,task,auc,f1,task_type,nov in leaderboard])}
-    </table>
-    """, unsafe_allow_html=True)
+        leaderboard = [
+            ("CO1", "Proximal GD",         "Fraud",          f"{auc_pgd2:.4f}", f"{f1_pgd2:.4f}", "fraud",  "L1 sparsity selects platform-native fraud features"),
+            ("CO1", "Fairness-ALM",         "Fraud (Fair)",   f"{auc_alm2:.4f}", f"{f1_alm2:.4f}", "fraud",  "Novel: FPR(Ola) <= FPR(Zomato) + epsilon constraint"),
+            ("CO1", "ADMM",                 "Fraud (Dist.)",  f"{auc_ad2:.4f}",  f"{f1_ad2:.4f}",  "fraud",  "Distributed — no raw data sharing between platforms"),
+            ("CO2", f"NN ({best_f2})",       "Fraud",          f"{nn_f2[best_f2]['auc']:.4f}", f"{nn_f2[best_f2]['f1']:.4f}", "fraud",  "Nonlinear GPS x Incentive x Rating interaction modelled"),
+            ("CO2", f"NN ({best_c2})",       "Credit",         f"{nn_c2[best_c2]['auc']:.4f}", f"{nn_c2[best_c2]['f1']:.4f}", "credit", "Platform-native credit scoring — no CIBIL data required"),
+            ("CO4", "Quantum SVM",          "Credit",         f"{qsvm_auc:.4f}", f"{qsvm_f1:.4f}", "credit", "Quantum kernel advantage for small micro-lender dataset"),
+        ]
 
-    st.markdown(f"""
-    <div class='novelty-box' style='margin-top:24px;'>
-      <h4>KEY IMPACT — 15 MILLION GIG WORKERS IN INDIA</h4>
-      <p>Banks currently reject 97% of gig worker loans — no salary proof accepted</p>
-      <p>Platforms detect GPS spoofing but miss coordinated incentive gaming — our novel contribution</p>
-      <p>Ola drivers over-flagged vs Zomato in preliminary analysis — corrected by Fairness-ALM</p>
-      <p>Quantum kernel advantage demonstrated for micro-lender small-data regime</p>
-      <p>Income CV as credit feature: absent from all existing Indian credit bureau models</p>
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown(f"""
+        <table class='result-table'>
+          <tr><th>CO</th><th>Model</th><th>Task</th><th>AUC</th><th>F1</th><th>Note</th></tr>
+          {''.join([f"""<tr>
+            <td style='font-family:IBM Plex Mono,monospace;color:{C["cyan"]};font-weight:600;font-size:0.72rem;'>{co}</td>
+            <td style='font-weight:600;'>{model}</td>
+            <td><span class='badge-{"fraud" if tt=="fraud" else "credit"}'>{task}</span></td>
+            <td class='{"auc-high" if float(auc)>0.9 else "auc-mid" if float(auc)>0.75 else "auc-low"}'>{auc}</td>
+            <td style='font-family:IBM Plex Mono,monospace;'>{f1}</td>
+            <td style='font-size:0.75rem;color:{C["muted"]};'>{nov}</td>
+          </tr>""" for co,model,task,auc,f1,tt,nov in leaderboard])}
+        </table>
+        """, unsafe_allow_html=True)
+
+        st.markdown(f"""
+        <div class='novelty-box' style='margin-top:24px;border-left-color:{C["cyan"]};'>
+          <h4>Key Impact — 15 Million Gig Workers in India</h4>
+          <p>Banks currently reject 97% of gig worker loans — no salary proof accepted by traditional underwriting.</p>
+          <p>Platforms detect GPS spoofing but miss coordinated incentive gaming. This system addresses both simultaneously.</p>
+          <p>Ola drivers were being over-flagged relative to Zomato in preliminary analysis — corrected by the Fairness-ALM constraint.</p>
+          <p>Income CV as a credit feature is absent from all existing Indian credit bureau models — this is the primary novel contribution.</p>
+          <p>Quantum kernel advantage demonstrated for the micro-lender small-data regime using ZZ-FeatureMap on 4 simulated qubits.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div style='background:{C["panel"]};border:1px solid {C["border"]};
+                    border-radius:4px;padding:48px 32px;text-align:center;margin-top:16px;'>
+          <div style='font-family:IBM Plex Mono,monospace;font-size:0.8rem;color:{C["muted"]};
+                      letter-spacing:2px;text-transform:uppercase;'>
+            Configure parameters above and click RUN QUANTUM KERNEL SVM<br>
+            <span style='font-size:0.7rem;color:{C["border"]};margin-top:8px;display:block;'>
+              Computation time approximately 60–90 seconds depending on train set size
+            </span>
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
