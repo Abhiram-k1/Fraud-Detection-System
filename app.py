@@ -1891,7 +1891,8 @@ elif page == "Quantum Scoring":
         with qp1:
             n_qsvm_workers = st.number_input("Quantum Train Set Size", min_value=60, max_value=300, value=180, step=20)
         with qp2:
-            st.markdown(f"<div style='padding-top:28px;font-family:IBM Plex Mono,monospace;font-size:0.75rem;color:{C[\"muted\"]};'>Test size fixed at 120 samples for compute efficiency</div>", unsafe_allow_html=True)
+            muted = C["muted"]
+            st.markdown(f"<div style='padding-top:28px;font-family:IBM Plex Mono,monospace;font-size:0.75rem;color:{muted};'>Test size fixed at 120 samples for compute efficiency</div>", unsafe_allow_html=True)
     with col_info:
         st.markdown(f"""
         <div class='info-box' style='margin-top:4px;'>
