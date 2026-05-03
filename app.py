@@ -944,6 +944,10 @@ pca_c     = PCA(n_components=6, random_state=42)
 X_pca_tr  = pca_c.fit_transform(X_tr_cs)
 X_pca_te  = pca_c.transform(X_te_cs)
 
+# platform_tr needed by ALM across multiple pages
+rng_platform = np.random.default_rng(99)
+platform_tr  = rng_platform.choice([0,1,2,3], len(y_tr_f), p=[.35,.25,.25,.15])
+
 
 # ═══════════════════════════════════════════════════════════════
 # PAGE: OVERVIEW
@@ -1107,8 +1111,6 @@ elif page == "Fraud Detection":
                 X_tr_fb, y_tr_f, X_te_fb, y_te_f, feat_cols_f)
             z_ad, cost_ad, pr_ad, dr_ad, auc_ad, f1_ad, spars_ad = run_admm(
                 X_tr_fb, y_tr_f, X_te_fb, y_te_f)
-            rng_p = np.random.default_rng(99)
-            platform_tr = rng_p.choice([0,1,2,3], len(y_tr_f), p=[.35,.25,.25,.15])
             w_alm, cost_alm, viol_fair, auc_alm, f1_alm = run_alm(
                 X_tr_fb, y_tr_f, X_te_fb, y_te_f, platform_tr)
 
